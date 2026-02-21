@@ -1,8 +1,3 @@
-#!/usr/bin/env python3
-"""
-Surgical Robot GUI Controller
-Directly sends joint commands via ros2 action client
-"""
 
 import subprocess
 import threading
@@ -125,8 +120,6 @@ def grasp():
     s_jaw_r.set(-0.12)
     send_jaw_command(0.12, -0.12, 2)
     status_var.set("Gentle grasp...")
-
-# ==================== GUI ====================
 root = tk.Tk()
 root.title("Surgical Robot Controller")
 root.geometry("700x780")
@@ -178,7 +171,6 @@ def slider_row(parent, label, from_, to_, initial=0.0):
     val_lbl.pack(side="left")
     return var
 
-# ===== HEADER =====
 hdr = tk.Frame(root, bg=DARK, pady=12)
 hdr.pack(fill="x")
 tk.Label(hdr, text="⚕  SURGICAL ROBOT CONTROLLER",
@@ -186,19 +178,16 @@ tk.Label(hdr, text="⚕  SURGICAL ROBOT CONTROLLER",
 tk.Label(hdr, text="Laparoscopic Grasper  •  ROS2 Jazzy",
          fg=MUTED, bg=DARK, font=("Courier New", 9)).pack()
 
-# ===== ARM JOINTS =====
 arm_card = card(root, "ARM JOINTS")
 s_yaw      = slider_row(arm_card, "joint1_yaw      (±90°)", -1.57, 1.57)
 s_shoulder = slider_row(arm_card, "joint2_shoulder (±57°)", -1.0,  1.0)
 s_elbow    = slider_row(arm_card, "joint3_elbow    (±69°)", -1.2,  1.2)
 s_wrist    = slider_row(arm_card, "joint4_wrist    (360°)", -3.14, 3.14)
 
-# ===== JAW JOINTS =====
 jaw_card = card(root, "GRASPER JAWS")
 s_jaw_l = slider_row(jaw_card, "jaw_left_joint",  0.0,  0.6)
 s_jaw_r = slider_row(jaw_card, "jaw_right_joint", -0.6, 0.0)
 
-# ===== SEND BUTTON =====
 send_frame = tk.Frame(root, bg=DARK, pady=4)
 send_frame.pack(fill="x", padx=16)
 tk.Button(send_frame, text="▶  SEND TO ROBOT", command=apply_sliders,
@@ -206,7 +195,6 @@ tk.Button(send_frame, text="▶  SEND TO ROBOT", command=apply_sliders,
           relief="flat", padx=20, pady=10, cursor="hand2",
           activebackground="#79c0ff", activeforeground=DARK).pack(fill="x")
 
-# ===== JAW QUICK CONTROLS =====
 jaw_btn_card = card(root, "JAW QUICK CONTROLS", pady=(4,4))
 btn_row = tk.Frame(jaw_btn_card, bg=CARD)
 btn_row.pack(fill="x")
@@ -219,7 +207,6 @@ for txt, cmd, color in [
               bg=color, fg=DARK, font=("Courier New", 10, "bold"),
               relief="flat", padx=14, pady=8, cursor="hand2").pack(side="left", expand=True, fill="x", padx=4)
 
-# ===== PRESET POSITIONS =====
 preset_card = card(root, "PRESET POSITIONS", pady=(4,4))
 presets = [
     ("🏠 HOME",    lambda: [s.set(v) for s,v in zip([s_yaw,s_shoulder,s_elbow,s_wrist],[0,0,0,0])] or send_arm_command(0,0,0,0)),
@@ -235,7 +222,6 @@ for txt, cmd in presets:
               relief="flat", padx=8, pady=7, cursor="hand2",
               activebackground="#444c56").pack(side="left", expand=True, fill="x", padx=3)
 
-# ===== AUTO SEQUENCE =====
 seq_card = card(root, "AUTO SURGICAL SEQUENCE", pady=(4,8))
 tk.Label(seq_card, text="Runs all 9 phases automatically: Home → Position → Insert → Grasp → Lift → Retract",
          fg=MUTED, bg=CARD, font=("Courier New", 8), wraplength=620).pack(pady=(0,6))
@@ -245,7 +231,6 @@ tk.Button(seq_card, text="🔬  RUN FULL SURGICAL SEQUENCE",
           relief="flat", padx=20, pady=10, cursor="hand2",
           activebackground="#2ea043").pack(fill="x")
 
-# ===== STATUS BAR =====
 status_var = tk.StringVar(value="Ready — Use sliders or buttons to control the robot")
 status_bar = tk.Frame(root, bg="#010409", pady=6)
 status_bar.pack(fill="x", side="bottom")
