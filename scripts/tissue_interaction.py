@@ -116,7 +116,7 @@ class TissueInteractionMonitor(Node):
                     f"Peak force: {peak_force:.3f} N"
                 )
 
-                # Reset state AFTER event is fully recorded
+                
                 self.in_contact         = False
                 self.contact_start_time = None
                 self.session_max        = 0.0
