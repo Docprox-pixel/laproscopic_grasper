@@ -17,7 +17,7 @@
     <plugin filename="gz-sim-contact-system"           name="gz::sim::systems::Contact"/>
     <plugin filename="gz-sim-forcetorque-system"       name="gz::sim::systems::ForceTorque"/>
 
-    <!-- ========== LIGHTING ========== -->
+    <!--  LIGHTING -->
     <light type="spot" name="surgical_light_main">
       <cast_shadows>true</cast_shadows>
       <pose>0 0 3.5 0 0 0</pose>
@@ -39,7 +39,7 @@
       <direction>0 0 -1</direction>
     </light>
 
-    <!-- ========== OR FLOOR ========== -->
+    <!--  OR FLOOR  -->
     <model name="or_floor">
       <static>true</static>
       <link name="floor_link">
@@ -57,7 +57,7 @@
       </link>
     </model>
 
-    <!-- ========== OR WALLS ========== -->
+    <!-- OR WALLS -->
     <model name="or_wall_back">
       <static>true</static><pose>5 0 2 0 0 0</pose>
       <link name="wall_link">
@@ -90,16 +90,7 @@
           <material><ambient>0.85 0.87 0.85 1</ambient><diffuse>0.83 0.85 0.83 1</diffuse></material></visual>
       </link>
     </model>
-
-    <!-- ============================================================ -->
-    <!--  BLUE ROBOT TABLE                                            -->
-    <!--  The surgical robot mounts on this blue table.              -->
-    <!--  Table surface top = z 0.90 m                               -->
-    <!--    Surface slab: size 0.80×0.65×0.05, pose z=0.875          -->
-    <!--    Legs: length 0.85, pose z=0.425                           -->
-    <!--  Positioned at x=-1.8, y=0 — robot spawns on top of this.  -->
-    <!-- ============================================================ -->
-
+    <!--  BLUE ROBOT TABLE  -->
     <!-- Blue table: leg 1 -->
     <model name="robot_table_leg1">
       <static>true</static><pose>-0.75 0.25 0.425 0 0 0</pose>
@@ -169,11 +160,7 @@
       </link>
     </model>
 
-    <!-- ============================================================ -->
-    <!--  PATIENT SURGICAL TABLE (unchanged from original)            -->
-    <!--  Grey stainless table with green mattress, patient on top.   -->
-    <!-- ============================================================ -->
-
+    <!--  PATIENT SURGICAL TABLE --
     <!-- Patient table legs -->
     <model name="or_table_leg1">
       <static>true</static><pose>1.5 0.4 0.45 0 0 0</pose>
@@ -242,7 +229,7 @@
       </link>
     </model>
 
-    <!-- ========== PATIENT ========== -->
+    <!-- PATIENT -->
     <model name="patient_torso">
       <static>true</static><pose>0.5 0 1.15 0 0 0</pose>
       <link name="torso_link">
@@ -290,7 +277,7 @@
       </link>
     </model>
 
-    <!-- ========== TISSUE TARGET ========== -->
+    <!--TISSUE TARGET  -->
     <model name="tissue_target">
       <static>false</static><pose>0.5 0 1.45 0 0 0</pose>
       <link name="tissue_link">
@@ -317,7 +304,7 @@
       </link>
     </model>
 
-    <!-- ========== OR EQUIPMENT ========== -->
+    <!-- OR EQUIPMENT -->
     <model name="iv_stand">
       <static>true</static><pose>-0.8 0.8 0.9 0 0 0</pose>
       <link name="iv_link">
