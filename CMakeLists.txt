@@ -13,7 +13,7 @@ install(
     scripts/force_feedback_node.py
     scripts/grasper_controller.py
     scripts/tissue_interaction.py
-    scripts/robot_controller_gui.py   # FIX #9: was missing — GUI script not installed as executable
+    scripts/robot_controller_gui.py  
   DESTINATION lib/${PROJECT_NAME}
 )
 
