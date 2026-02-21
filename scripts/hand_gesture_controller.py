@@ -1,39 +1,3 @@
-#!/usr/bin/env python3
-"""
-Hand Gesture Controller — Laparoscopic Grasper Surgical Robot
-==============================================================
-Uses OpenCV + MediaPipe to detect hand gestures from a webcam
-and translate them into ROS2 joint trajectory commands.
-
-GESTURE MAP
-───────────────────────────────────────────────────────────────
-  ✋ Open hand (5 fingers)   → Open grasper jaws
-  ✊ Fist                    → Close / grasp
-  ☝  Index only             → Move arm UP (shoulder +)
-  🤘 Index + pinky (horns)  → Move arm DOWN (shoulder -)
-  👈 Point left (yaw -)     → Yaw left
-  👉 Point right (yaw +)    → Yaw right  (mirror hand)
-  🤙 Hang loose (thumb+pinky) → Home position (safe reset)
-  ✌  Peace (index+middle)   → Extend arm forward (elbow +)
-  🤞 Crossed fingers         → Retract arm (elbow -)
-
-USAGE
-─────
-  # Terminal 1 — launch the robot simulation
-  ros2 launch laproscopic_grasper surgical_robot.launch.py
-
-  # Terminal 2 — start gesture controller
-  python3 hand_gesture_controller.py
-
-  # Optional: disable auto-sequence in grasper_controller.py first so
-  # manual gesture control isn't fighting the sequence timer.
-
-DEPENDENCIES
-────────────
-  pip install mediapipe opencv-python --break-system-packages
-  (ROS2 Jazzy + ros2_control must already be running)
-"""
-
 import cv2
 import mediapipe as mp
 import numpy as np
@@ -58,10 +22,6 @@ except ImportError:
     ROS2_AVAILABLE = False
     print("[WARN] ROS2 not available — running in DEMO mode (overlay only, no commands sent)")
 
-
-# ═══════════════════════════════════════════════════════════════════════════════
-#  CONFIG
-# ═══════════════════════════════════════════════════════════════════════════════
 
 CAMERA_INDEX      = 0        # webcam index
 GESTURE_COOLDOWN  = 0.6      # seconds between repeated same-gesture commands
@@ -88,11 +48,6 @@ C_YELLOW = (20,  220, 230)
 C_WHITE  = (240, 240, 240)
 C_DARK   = (20,   20,  20)
 C_TEAL   = (200, 180,  30)
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-#  ROS2 COMMANDER  (sends trajectory actions)
-# ═══════════════════════════════════════════════════════════════════════════════
 
 class RobotCommander:
     """Thin wrapper that sends FollowJointTrajectory goals via subprocess
@@ -138,11 +93,6 @@ class RobotCommander:
         with self._lock:
             self._ros2_action("grasper_controller", self.GRASP_JOINTS, positions, duration)
 
-
-# ═══════════════════════════════════════════════════════════════════════════════
-#  ARM STATE  (tracks current joint positions locally)
-# ═══════════════════════════════════════════════════════════════════════════════
-
 class ArmState:
     def __init__(self):
         self.yaw      = 0.0
@@ -164,11 +114,6 @@ class ArmState:
 
     def reset(self):
         self.yaw = self.shoulder = self.elbow = self.wrist = 0.0
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-#  GESTURE DETECTOR
-# ═══════════════════════════════════════════════════════════════════════════════
 
 @dataclass
 class GestureResult:
@@ -276,11 +221,6 @@ class GestureDetector:
 
         return GestureResult(name=name, confidence=conf, landmarks=lm), annotated
 
-
-# ═══════════════════════════════════════════════════════════════════════════════
-#  OVERLAY RENDERER
-# ═══════════════════════════════════════════════════════════════════════════════
-
 GESTURE_INFO = {
     "OPEN_HAND":  ("✋ Open Hand",    "Open grasper jaws",    C_GREEN),
     "FIST":       ("✊ Fist",          "Close / Grasp",        C_RED),
@@ -302,14 +242,12 @@ def render_overlay(frame, gesture: Optional[GestureResult],
     h, w = frame.shape[:2]
     out  = frame.copy()
 
-    # ── Top bar ─────────────────────────────────────────────────────────────
     cv2.rectangle(out, (0, 0), (w, 54), (15, 15, 15), -1)
     cv2.putText(out, "Surgical Robot  |  Hand Gesture Control",
                 (12, 34), cv2.FONT_HERSHEY_SIMPLEX, 0.75, C_BLUE, 2)
     cv2.putText(out, f"FPS {fps:.0f}",
                 (w - 90, 34), cv2.FONT_HERSHEY_SIMPLEX, 0.65, C_GREEN, 2)
 
-    # ── Gesture box ─────────────────────────────────────────────────────────
     if gesture and gesture.name != "UNKNOWN":
         label, desc, colour = GESTURE_INFO.get(gesture.name, GESTURE_INFO["UNKNOWN"])
         cv2.rectangle(out, (0, h - 90), (w, h), (15, 15, 15), -1)
@@ -320,15 +258,13 @@ def render_overlay(frame, gesture: Optional[GestureResult],
         # confidence bar
         bar_w = int((w - 24) * gesture.confidence)
         cv2.rectangle(out, (12, h - 10), (12 + bar_w, h - 4), colour, -1)
-
-    # ── Cooldown arc ────────────────────────────────────────────────────────
+      
     cx, cy, r = w - 50, 100, 28
     cv2.circle(out, (cx, cy), r, (50, 50, 50), 3)
     angle = int(360 * cooldown_pct)
     if angle > 0:
         cv2.ellipse(out, (cx, cy), (r, r), -90, 0, angle, C_GREEN, 3)
-
-    # ── Joint state panel ───────────────────────────────────────────────────
+      
     panel_x = w - 220
     cv2.rectangle(out, (panel_x - 8, 62), (w - 4, 230), (20, 20, 20), -1)
     cv2.rectangle(out, (panel_x - 8, 62), (w - 4, 230), (60, 60, 60), 1)
@@ -351,12 +287,12 @@ def render_overlay(frame, gesture: Optional[GestureResult],
         cv2.rectangle(out, (panel_x, y + 5), (panel_x + 130, y + 11), (60, 60, 60), -1)
         cv2.rectangle(out, (panel_x, y + 5), (panel_x + bar_fill, y + 11), C_TEAL, -1)
 
-    # ── Last command ────────────────────────────────────────────────────────
+    
     if last_cmd:
         cv2.putText(out, f"Sent: {last_cmd}", (panel_x, 220),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.42, C_GREEN, 1)
 
-    # ── Legend (small, bottom-right corner of top area) ────────────────────
+  
     legend = [
         ("✋ open jaws", "✊ grasp"),
         ("☝ up/down",   "← → yaw"),
@@ -370,18 +306,13 @@ def render_overlay(frame, gesture: Optional[GestureResult],
         cv2.putText(out, f"{a:<16}  {b}",
                     (lx, ly + i * 18), cv2.FONT_HERSHEY_SIMPLEX, 0.38, (170, 170, 170), 1)
 
-    # ── ROS2 status badge ───────────────────────────────────────────────────
+    
     ros_txt   = "ROS2 LIVE" if ROS2_AVAILABLE else "DEMO MODE"
     ros_color = C_GREEN if ROS2_AVAILABLE else C_RED
     cv2.putText(out, ros_txt, (12, h - 100),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, ros_color, 1)
 
     return out
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-#  MAIN CONTROLLER LOOP
-# ═══════════════════════════════════════════════════════════════════════════════
 
 def main():
     print("\n" + "=" * 60)
@@ -432,7 +363,6 @@ def main():
         elapsed      = now - last_cmd_time
         cooldown_pct = min(elapsed / GESTURE_COOLDOWN, 1.0)
 
-        # ── Dispatch gesture → robot command ─────────────────────────────
         if (gesture and
                 gesture.name not in ("UNKNOWN", last_gesture) and
                 gesture.confidence >= 0.80 and
@@ -518,7 +448,7 @@ def main():
             if elapsed >= GESTURE_COOLDOWN:
                 last_gesture = ""
 
-        # ── Render ───────────────────────────────────────────────────────
+  
         display = render_overlay(
             annotated, gesture, arm,
             last_cmd_label, fps, cooldown_pct,
