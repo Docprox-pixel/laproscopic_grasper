@@ -1,16 +1,3 @@
-#!/usr/bin/env python3
-"""
-Force Feedback Sensor Node
-===========================
-Monitors force/torque data from the laparoscopic grasper sensors.
-
-FIX #7: Force thresholds were inconsistent across files.
-  - README says: WARNING > 1.5N, CRITICAL > 2.0N
-  - tissue_interaction.py gallbladder profile: safe=1.0, warning=1.5, critical=2.2
-  - This file originally had: WARNING=1.5, CRITICAL=2.5, SAFE_MAX=2.0 (CRITICAL > SAFE_MAX is contradictory)
-  Fixed: FORCE_WARNING=1.5, FORCE_CRITICAL=2.0 to match README and be consistent with SAFE_MAX.
-"""
-
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy
@@ -25,10 +12,9 @@ import math
 
 class ForceFeedbackNode(Node):
 
-    FORCE_WARNING  = 1.5   # N — matches README and tissue_interaction gallbladder warning
-    FORCE_CRITICAL = 2.0   # N — matches README CRITICAL threshold (was 2.5, contradicting SAFE_MAX=2.0)
-    FORCE_SAFE_MAX = 2.0   # N — maximum safe operating force
-
+    FORCE_WARNING  = 1.5   
+    FORCE_CRITICAL = 2.0   
+    FORCE_SAFE_MAX = 2.0   
     def __init__(self):
         super().__init__("force_feedback_node")
 
