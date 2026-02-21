@@ -1,19 +1,10 @@
-#!/bin/bash
-# ============================================================
-# LAPAROSCOPIC GRASPER SURGICAL ROBOT - DEPENDENCY INSTALLER
-# ROS2 Jazzy + Gazebo Harmonic on Ubuntu 24.04 LTS
-# ============================================================
-# Run this script ONCE before building the workspace.
-# Usage: chmod +x install_dependencies.sh && ./install_dependencies.sh
-# ============================================================
-
 set -e  # Exit on error
 
 echo ""
-echo "============================================================"
+echo ""
 echo "  Installing Laparoscopic Grasper Robot Dependencies"
 echo "  ROS2 Jazzy + Gazebo Harmonic - Ubuntu 24.04"
-echo "============================================================"
+echo ""
 echo ""
 
 # ---- Check ROS2 Jazzy is installed ----
@@ -118,9 +109,9 @@ sudo apt install -y \
     git
 
 echo ""
-echo "============================================================"
+echo ""
 echo "  All dependencies installed successfully!"
-echo "============================================================"
+echo ""
 echo ""
 echo "Now build the workspace:"
 echo ""
