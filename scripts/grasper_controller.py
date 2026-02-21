@@ -1,19 +1,3 @@
-#!/usr/bin/env python3
-"""
-Grasper Motion Controller — smooth cubic-spline trajectory
-Robot spawned at x=-1.00 on blue table (z=0.90 m).
-Tissue target at x=+0.50, z=1.45 m.
-Gear mechanism: drive pinion + worm screw + racks (visual in URDF).
-
-Smooth motion strategy
-─────────────────────
-JointTrajectoryController uses cubic splines when *velocities* are provided
-at every waypoint. We supply:
-  • vel=0 at start, hold, and goal  →  smooth ramp-up / ramp-down
-  • non-zero intermediate velocities →  continuous, no abrupt stops
-This eliminates the jerky step-between-waypoints behaviour seen previously.
-"""
-
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
@@ -66,7 +50,7 @@ class GrasperMotionController(Node):
         t.start()
         self.get_logger().info("Sequence starts in 5 s …")
 
-    # ─── callbacks ────────────────────────────────────────────────────────
+    # callbacks
     def _safety_cb(self, msg: String):
         if "CRITICAL" in msg.data:
             self.get_logger().error(f"E-STOP: {msg.data}")
@@ -75,7 +59,7 @@ class GrasperMotionController(Node):
     def _force_cb(self, msg: Float32):
         self.current_grip = msg.data
 
-    # ─── helpers ──────────────────────────────────────────────────────────
+    # helpers 
     def _dur(self, t: float) -> Duration:
         s = int(t)
         return Duration(sec=s, nanosec=int((t - s) * 1e9))
@@ -146,7 +130,7 @@ class GrasperMotionController(Node):
         self.get_logger().info("Grasper move complete")
         return True
 
-    # ─── grasper preset states ─────────────────────────────────────────
+    #  grasper preset states 
     # [wrist_pitch, l_prox, r_prox, l_dist, r_dist]
     G_HOME  = [ 0.00,  0.00,  0.00,  0.00,  0.00]
     G_OPEN  = [ 0.00,  0.50, -0.50,  0.30, -0.30]
@@ -164,7 +148,7 @@ class GrasperMotionController(Node):
         except Exception as e:
             self.get_logger().error(f"Sequence error: {e}")
 
-    # ─── MAIN SEQUENCE ────────────────────────────────────────────────────
+    # MAIN SEQUENCE 
     def _sequence(self):
         self.get_logger().info("\n" + "=" * 60)
         self.get_logger().info("  SURGICAL SEQUENCE — SMOOTH CUBIC-SPLINE MOTION")
@@ -212,7 +196,7 @@ class GrasperMotionController(Node):
         time.sleep(0.3)
         if self.emergency_stop: return
 
-        # ── Phase 3: YAW smooth swing to align with tissue ─────────────────
+        # Phase 3: YAW smooth swing to align with tissue 
         self.get_logger().info("\n  Phase 3: Smooth yaw swing → tissue alignment")
         self.send_arm(
             [
@@ -228,7 +212,7 @@ class GrasperMotionController(Node):
         time.sleep(0.3)
         if self.emergency_stop: return
 
-        # ── Phase 4: ARC OVER TABLE — keep height, smoothly extend elbow ──
+        # Phase 4: ARC OVER TABLE — keep height, smoothly extend elbow 
         # Robot is now at x=-1.00. Patient table near-edge = x=-0.30, z=0.955.
         # Arm rises high first then extends, so tip arcs OVER the edge.
         self.get_logger().info("\n  Phase 4: Smooth arc over patient table edge")
@@ -259,7 +243,7 @@ class GrasperMotionController(Node):
         time.sleep(0.3)
         if self.emergency_stop: return
 
-        # ── Phase 5: DESCEND — vertical drop from directly above tissue ────
+        # Phase 5: DESCEND — vertical drop from directly above tissue 
         self.get_logger().info("\n  Phase 5: Smooth vertical descent onto tissue")
         self.send_arm(
             [
@@ -275,7 +259,7 @@ class GrasperMotionController(Node):
         time.sleep(0.5)
         if self.emergency_stop: return
 
-        # ── Phase 6: GEAR-ENGAGE GRASP — worm drives racks inward ─────────
+        # Phase 6: GEAR-ENGAGE GRASP — worm drives racks inward 
         # Progressive 4-step close mimics worm-gear actuation: the fingers
         # don't snap shut but ratchet smoothly as the worm advances each rack.
         self.get_logger().info(f"\n  Phase 6: Gear-engage grasp  (pre-force: {self.current_grip:.3f} N)")
@@ -304,7 +288,7 @@ class GrasperMotionController(Node):
             self.send_grasper([self.G_OPEN], [self._Z5], [2.5])
             return
 
-        # ── Phase 7: LIFT — rise straight up with tissue ───────────────────
+        # Phase 7: LIFT — rise straight up with tissue 
         self.get_logger().info("\n  Phase 7: Smooth lift — tissue rises with arm")
         self.send_arm(
             [
@@ -321,7 +305,7 @@ class GrasperMotionController(Node):
         self.get_logger().info(f"  Holding tissue — force: {self.current_grip:.3f} N")
         if self.emergency_stop: return
 
-        # ── Phase 8: GEAR-REVERSE RELEASE — racks retract outward ─────────
+        # Phase 8: GEAR-REVERSE RELEASE — racks retract outward 
         self.get_logger().info("\n  Phase 8: Gear-reverse release — racks open")
         self.send_grasper(
             [
@@ -342,7 +326,7 @@ class GrasperMotionController(Node):
         )
         time.sleep(1.0)
 
-        # ── Phase 9: RETRACT — same high-arc path in reverse ─────────────
+        # Phase 9: RETRACT — same high-arc path in reverse 
         self.get_logger().info("\n  Phase 9: Smooth high-arc retract to home")
         self.send_grasper(
             [self.G_OPEN, self.G_HOME],
