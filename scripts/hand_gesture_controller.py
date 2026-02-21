@@ -9,7 +9,6 @@ from collections import deque
 from dataclasses import dataclass
 from typing import Optional
 
-# ── ROS2 optional import ─────────────────────────────────────────────────────
 try:
     import rclpy
     from rclpy.node import Node
