@@ -1,23 +1,6 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="laproscopic_grasper">
 
-  <!-- ========================================================= -->
-  <!--  LAPAROSCOPIC GRASPER SURGICAL ROBOT                      -->
-  <!--  • Robot base sits ON the blue robot table (z = 0.90 m)   -->
-  <!--  • 5-DOF arm: yaw / shoulder / elbow / wrist-roll /       -->
-  <!--               wrist-pitch                                  -->
-  <!--  • Full finger grasper:                                    -->
-  <!--      finger_base (fixed hub)                               -->
-  <!--      ├─ finger_left_proximal_joint  (revolute, open/close) -->
-  <!--      │    └─ finger_left_proximal                          -->
-  <!--      │         └─ finger_left_distal_joint (revolute)      -->
-  <!--      │              └─ finger_left_distal                  -->
-  <!--      └─ finger_right_proximal_joint (revolute, open/close) -->
-  <!--           └─ finger_right_proximal                         -->
-  <!--                └─ finger_right_distal_joint (revolute)     -->
-  <!--                     └─ finger_right_distal                 -->
-  <!-- ========================================================= -->
-
   <xacro:property name="PI" value="3.14159265359"/>
 
   <!-- ==================== MATERIALS ==================== -->
@@ -206,12 +189,8 @@
     <origin xyz="0 0 -0.04" rpy="0 0 0"/>
   </joint>
 
-  <!-- ================================================================ -->
-  <!--  JOINT 5 — WRIST PITCH                                           -->
-  <!--  NEW: pitches the entire grasper head up/down so it can angle    -->
-  <!--  the fingers toward the tissue at different approach angles.      -->
-  <!--  Range ±45° (±0.785 rad).                                        -->
-  <!-- ================================================================ -->
+  <!--  JOINT 5 — WRIST PITCH -->
+
   <joint name="joint5_wrist_pitch" type="revolute">
     <parent link="trocar_shaft"/>
     <child link="wrist_link"/>
@@ -221,7 +200,7 @@
     <dynamics damping="0.15" friction="0.03"/>
   </joint>
 
-  <!-- ==================== WRIST LINK ==================== -->
+  <!-- WRIST LINK -->
   <link name="wrist_link">
     <visual>
       <origin xyz="0 0 -0.018" rpy="0 0 0"/>
@@ -238,10 +217,7 @@
     </inertial>
   </link>
 
-  <!-- ================================================================ -->
-  <!--  FINGER BASE (fixed hub between wrist and fingers)               -->
-  <!--  A visible palm / knuckle block that the two fingers attach to.  -->
-  <!-- ================================================================ -->
+  <!--  FINGER BASE (fixed hub between wrist and fingers)  -->
   <link name="finger_base">
     <visual>
       <origin xyz="0 0 -0.014" rpy="0 0 0"/>
@@ -263,11 +239,7 @@
     <origin xyz="0 0 -0.036" rpy="0 0 0"/>
   </joint>
 
-  <!-- ================================================================ -->
-  <!--  FINGER LEFT — PROXIMAL PHALANX                                  -->
-  <!--  Joint opens outward in +Y direction.                            -->
-  <!--  0 = closed (fingers together), +0.55 rad = fully open.         -->
-  <!-- ================================================================ -->
+  <!--  FINGER LEFT — PROXIMAL PHALANX    -->
   <joint name="finger_left_proximal_joint" type="revolute">
     <parent link="finger_base"/>
     <child link="finger_left_proximal"/>
@@ -293,11 +265,8 @@
     </inertial>
   </link>
 
-  <!-- ================================================================ -->
-  <!--  FINGER LEFT — DISTAL PHALANX (tip)                             -->
-  <!--  Curls in as the proximal opens — mimics a natural grasp.       -->
-  <!--  Axis Y, same direction.  Range 0..0.40 rad.                    -->
-  <!-- ================================================================ -->
+ 
+  <!--  FINGER LEFT — DISTAL PHALANX -->
   <joint name="finger_left_distal_joint" type="revolute">
     <parent link="finger_left_proximal"/>
     <child link="finger_left_distal"/>
@@ -337,10 +306,7 @@
     <origin xyz="0.004 0.002 -0.018" rpy="0 0 0"/>
   </joint>
 
-  <!-- ================================================================ -->
-  <!--  FINGER RIGHT — PROXIMAL PHALANX (mirror of left)               -->
-  <!--  Opens in −Y direction. Limit lower=−0.55..0.                   -->
-  <!-- ================================================================ -->
+  <!--  FINGER RIGHT   -->
   <joint name="finger_right_proximal_joint" type="revolute">
     <parent link="finger_base"/>
     <child link="finger_right_proximal"/>
@@ -365,9 +331,7 @@
     </inertial>
   </link>
 
-  <!-- ================================================================ -->
-  <!--  FINGER RIGHT — DISTAL PHALANX (tip)                            -->
-  <!-- ================================================================ -->
+  <!--  FINGER RIGHT — DISTAL PHALANX  -->
   <joint name="finger_right_distal_joint" type="revolute">
     <parent link="finger_right_proximal"/>
     <child link="finger_right_distal"/>
@@ -405,14 +369,6 @@
     <child link="jaw_right_sensor"/>
     <origin xyz="0.004 -0.002 -0.018" rpy="0 0 0"/>
   </joint>
-
-  <!-- ================================================================ -->
-  <!--  GEAR MECHANISM — Rack-and-Pinion Grasper Drive                 -->
-  <!--  • drive_pinion : central gear disc at finger_base hub (8 teeth) -->
-  <!--  • worm_screw   : helical worm at wrist/shaft junction           -->
-  <!--  • rack_left / rack_right: tooth strips on finger proximal links -->
-  <!--  All are visual-only fixed joints; they animate with the fingers -->
-  <!-- ================================================================ -->
 
   <!-- Central drive pinion gear disc -->
   <link name="drive_pinion">
@@ -489,12 +445,7 @@
     <origin xyz="-0.001  0.010 -0.008" rpy="0 0 0"/>
   </joint>
 
-  <!-- ================================================================ -->
-  <!--  ROS2 CONTROL                                                    -->
-  <!--  6 arm joints + wrist_pitch + 4 finger joints = 11 controlled   -->
-  <!--  Grasper controller drives: wrist_pitch, left_proximal,          -->
-  <!--    right_proximal, left_distal, right_distal                     -->
-  <!-- ================================================================ -->
+  <!--  ROS2 CONTROL  -->
   <xacro:arg name="config_path" default=""/>
   <ros2_control name="laproscopic_grasper_system" type="system">
     <hardware>
@@ -564,7 +515,7 @@
     </joint>
   </ros2_control>
 
-  <!-- ==================== GAZEBO PLUGINS ==================== -->
+  <!--  GAZEBO PLUGINS -->
   <gazebo>
     <plugin filename="gz_ros2_control-system"
             name="gz_ros2_control::GazeboSimROS2ControlPlugin">
@@ -607,7 +558,7 @@
     </sensor>
   </gazebo>
 
-  <!-- ==================== GAZEBO MATERIALS ==================== -->
+  <!-- GAZEBO MATERIALS -->
   <gazebo reference="robot_base">
     <material>Gazebo/DarkGrey</material>
     <mu1>0.9</mu1><mu2>0.9</mu2>
