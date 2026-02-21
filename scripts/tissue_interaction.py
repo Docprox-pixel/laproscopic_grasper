@@ -1,17 +1,3 @@
-#!/usr/bin/env python3
-"""
-Tissue Interaction Monitor
-===========================
-Monitors and logs all tissue-robot interaction data.
-
-FIX #8: Race condition in contact end logic.
-  When contact ends, the original code checked `self.contact_start_time is None`
-  AFTER already resetting `self.session_max = 0.0`. This meant if the None guard
-  triggered (impossible in practice but defensively bad), session_max was already
-  corrupted for the log. Additionally, all state resets now happen AFTER the event
-  is recorded so the event captures correct data.
-"""
-
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String, Float32
