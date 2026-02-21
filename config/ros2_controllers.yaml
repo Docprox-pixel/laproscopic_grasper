@@ -1,0 +1,90 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100  # Hz
+    use_sim_time: true
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    arm_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    # NEW: grasper controller now drives wrist_pitch + 4 finger joints
+    grasper_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+# Arm Controller — 4 arm joints only (unchanged)
+arm_controller:
+  ros__parameters:
+    joints:
+      - joint1_yaw
+      - joint2_shoulder
+      - joint3_elbow
+      - joint4_wrist
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    state_publish_rate: 100.0
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: false
+    open_loop_control: false
+    allow_integration_in_goal_trajectories: true
+    constraints:
+      stopped_velocity_tolerance: 0.01
+      goal_time: 0.0
+      joint1_yaw:
+        trajectory: 0.05
+        goal: 0.03
+      joint2_shoulder:
+        trajectory: 0.05
+        goal: 0.03
+      joint3_elbow:
+        trajectory: 0.05
+        goal: 0.03
+      joint4_wrist:
+        trajectory: 0.05
+        goal: 0.03
+
+# Grasper Controller — wrist_pitch + 4 finger joints
+# joint5_wrist_pitch   : pitches grasper head ±45°
+# finger_left_proximal : opens left finger  0..+0.55 rad
+# finger_right_proximal: opens right finger 0..-0.55 rad
+# finger_left_distal   : curls left tip     0..+0.40 rad
+# finger_right_distal  : curls right tip    0..-0.40 rad
+grasper_controller:
+  ros__parameters:
+    joints:
+      - joint5_wrist_pitch
+      - finger_left_proximal_joint
+      - finger_right_proximal_joint
+      - finger_left_distal_joint
+      - finger_right_distal_joint
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    state_publish_rate: 100.0
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: true
+    open_loop_control: false
+    constraints:
+      stopped_velocity_tolerance: 0.01
+      goal_time: 0.0
+      joint5_wrist_pitch:
+        trajectory: 0.05
+        goal: 0.03
+      finger_left_proximal_joint:
+        trajectory: 0.05
+        goal: 0.03
+      finger_right_proximal_joint:
+        trajectory: 0.05
+        goal: 0.03
+      finger_left_distal_joint:
+        trajectory: 0.05
+        goal: 0.03
+      finger_right_distal_joint:
+        trajectory: 0.05
+        goal: 0.03

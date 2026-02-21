@@ -1,0 +1,656 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="laproscopic_grasper">
+
+  <!-- ========================================================= -->
+  <!--  LAPAROSCOPIC GRASPER SURGICAL ROBOT                      -->
+  <!--  • Robot base sits ON the blue robot table (z = 0.90 m)   -->
+  <!--  • 5-DOF arm: yaw / shoulder / elbow / wrist-roll /       -->
+  <!--               wrist-pitch                                  -->
+  <!--  • Full finger grasper:                                    -->
+  <!--      finger_base (fixed hub)                               -->
+  <!--      ├─ finger_left_proximal_joint  (revolute, open/close) -->
+  <!--      │    └─ finger_left_proximal                          -->
+  <!--      │         └─ finger_left_distal_joint (revolute)      -->
+  <!--      │              └─ finger_left_distal                  -->
+  <!--      └─ finger_right_proximal_joint (revolute, open/close) -->
+  <!--           └─ finger_right_proximal                         -->
+  <!--                └─ finger_right_distal_joint (revolute)     -->
+  <!--                     └─ finger_right_distal                 -->
+  <!-- ========================================================= -->
+
+  <xacro:property name="PI" value="3.14159265359"/>
+
+  <!-- ==================== MATERIALS ==================== -->
+  <material name="surgical_steel"> <color rgba="0.75 0.75 0.80 1.0"/> </material>
+  <material name="dark_metal">     <color rgba="0.18 0.18 0.22 1.0"/> </material>
+  <material name="sensor_yellow">  <color rgba="1.0  0.85 0.0  1.0"/> </material>
+  <material name="tip_blue">       <color rgba="0.05 0.35 0.85 1.0"/> </material>
+  <material name="finger_color">   <color rgba="0.15 0.55 0.95 1.0"/> </material>
+  <material name="finger_tip_col"> <color rgba="0.95 0.85 0.10 1.0"/> </material>
+  <material name="wrist_color">    <color rgba="0.55 0.60 0.70 1.0"/> </material>
+
+  <!-- ==================== WORLD / BASE ==================== -->
+  <!--
+    Robot base is placed ON the blue robot table.
+    Blue table surface top = z 0.90 m  (table surface at z=0.875, thickness=0.05 → top=0.90)
+    The robot_base box lower face is at z=0 in local frame (visual origin z=+0.075).
+    So the fixed joint origin z=0.90 places the base bottom exactly on the table top.
+  -->
+  <link name="world"/>
+  <joint name="world_to_base" type="fixed">
+    <parent link="world"/>
+    <child link="robot_base"/>
+    <origin xyz="0 0 0.90" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ==================== ROBOT BASE ==================== -->
+  <link name="robot_base">
+    <visual>
+      <origin xyz="0 0 0.075" rpy="0 0 0"/>
+      <geometry><box size="0.38 0.32 0.15"/></geometry>
+      <material name="dark_metal"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.075" rpy="0 0 0"/>
+      <geometry><box size="0.38 0.32 0.15"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="20.0"/>
+      <inertia ixx="0.4" ixy="0" ixz="0" iyy="0.4" iyz="0" izz="0.5"/>
+    </inertial>
+  </link>
+
+  <!-- ==================== BASE COLUMN ==================== -->
+  <link name="base_column">
+    <visual>
+      <origin xyz="0 0 0.20" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.045" length="0.40"/></geometry>
+      <material name="surgical_steel"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.20" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.045" length="0.40"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="3.0"/>
+      <inertia ixx="0.05" ixy="0" ixz="0" iyy="0.05" iyz="0" izz="0.01"/>
+    </inertial>
+  </link>
+  <joint name="base_column_joint" type="fixed">
+    <parent link="robot_base"/>
+    <child link="base_column"/>
+    <origin xyz="0 0 0.15" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ==================== JOINT 1 — YAW ==================== -->
+  <joint name="joint1_yaw" type="revolute">
+    <parent link="base_column"/>
+    <child link="arm_link1"/>
+    <origin xyz="0 0 0.40" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-1.57" upper="1.57" effort="50" velocity="0.5"/>
+    <dynamics damping="0.5" friction="0.1"/>
+  </joint>
+  <link name="arm_link1">
+    <visual>
+      <origin xyz="0.15 0 0.025" rpy="0 0 0"/>
+      <geometry><box size="0.30 0.06 0.05"/></geometry>
+      <material name="surgical_steel"/>
+    </visual>
+    <collision>
+      <origin xyz="0.15 0 0.025" rpy="0 0 0"/>
+      <geometry><box size="0.30 0.06 0.05"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="1.5"/>
+      <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.02" iyz="0" izz="0.02"/>
+    </inertial>
+  </link>
+
+  <!-- ==================== JOINT 2 — SHOULDER ==================== -->
+  <joint name="joint2_shoulder" type="revolute">
+    <parent link="arm_link1"/>
+    <child link="arm_link2"/>
+    <origin xyz="0.30 0 0.04" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.0" upper="1.0" effort="40" velocity="0.5"/>
+    <dynamics damping="0.5" friction="0.1"/>
+  </joint>
+  <link name="arm_link2">
+    <visual>
+      <origin xyz="0 0 -0.15" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.025" length="0.30"/></geometry>
+      <material name="surgical_steel"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 -0.15" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.025" length="0.30"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.8"/>
+      <inertia ixx="0.008" ixy="0" ixz="0" iyy="0.008" iyz="0" izz="0.001"/>
+    </inertial>
+  </link>
+
+  <!-- ==================== JOINT 3 — ELBOW ==================== -->
+  <joint name="joint3_elbow" type="revolute">
+    <parent link="arm_link2"/>
+    <child link="arm_link3"/>
+    <origin xyz="0 0 -0.30" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.2" upper="1.2" effort="30" velocity="0.6"/>
+    <dynamics damping="0.4" friction="0.08"/>
+  </joint>
+  <link name="arm_link3">
+    <visual>
+      <origin xyz="0 0 -0.10" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.02" length="0.20"/></geometry>
+      <material name="surgical_steel"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 -0.10" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.02" length="0.20"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.5"/>
+      <inertia ixx="0.003" ixy="0" ixz="0" iyy="0.003" iyz="0" izz="0.0005"/>
+    </inertial>
+  </link>
+
+  <!-- ==================== JOINT 4 — WRIST ROLL ==================== -->
+  <joint name="joint4_wrist" type="revolute">
+    <parent link="arm_link3"/>
+    <child link="trocar_shaft"/>
+    <origin xyz="0 0 -0.20" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-3.14" upper="3.14" effort="10" velocity="1.0"/>
+    <dynamics damping="0.2" friction="0.05"/>
+  </joint>
+
+  <!-- ==================== TROCAR SHAFT ==================== -->
+  <link name="trocar_shaft">
+    <visual>
+      <origin xyz="0 0 -0.12" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.007" length="0.24"/></geometry>
+      <material name="tip_blue"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 -0.12" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.007" length="0.24"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.08"/>
+      <inertia ixx="0.0006" ixy="0" ixz="0" iyy="0.0006" iyz="0" izz="0.000001"/>
+    </inertial>
+  </link>
+
+  <!-- ==================== FORCE/TORQUE SENSOR RING ==================== -->
+  <link name="force_sensor_ring">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.013" length="0.015"/></geometry>
+      <material name="sensor_yellow"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.013" length="0.015"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.02"/>
+      <inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.000002"/>
+    </inertial>
+  </link>
+  <joint name="sensor_ring_joint" type="fixed">
+    <parent link="trocar_shaft"/>
+    <child link="force_sensor_ring"/>
+    <origin xyz="0 0 -0.04" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ================================================================ -->
+  <!--  JOINT 5 — WRIST PITCH                                           -->
+  <!--  NEW: pitches the entire grasper head up/down so it can angle    -->
+  <!--  the fingers toward the tissue at different approach angles.      -->
+  <!--  Range ±45° (±0.785 rad).                                        -->
+  <!-- ================================================================ -->
+  <joint name="joint5_wrist_pitch" type="revolute">
+    <parent link="trocar_shaft"/>
+    <child link="wrist_link"/>
+    <origin xyz="0 0 -0.24" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-0.785" upper="0.785" effort="8" velocity="0.8"/>
+    <dynamics damping="0.15" friction="0.03"/>
+  </joint>
+
+  <!-- ==================== WRIST LINK ==================== -->
+  <link name="wrist_link">
+    <visual>
+      <origin xyz="0 0 -0.018" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.011" length="0.036"/></geometry>
+      <material name="wrist_color"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 -0.018" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.011" length="0.036"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.04"/>
+      <inertia ixx="0.00003" ixy="0" ixz="0" iyy="0.00003" iyz="0" izz="0.000002"/>
+    </inertial>
+  </link>
+
+  <!-- ================================================================ -->
+  <!--  FINGER BASE (fixed hub between wrist and fingers)               -->
+  <!--  A visible palm / knuckle block that the two fingers attach to.  -->
+  <!-- ================================================================ -->
+  <link name="finger_base">
+    <visual>
+      <origin xyz="0 0 -0.014" rpy="0 0 0"/>
+      <geometry><box size="0.030 0.022 0.028"/></geometry>
+      <material name="surgical_steel"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 -0.014" rpy="0 0 0"/>
+      <geometry><box size="0.030 0.022 0.028"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.05"/>
+      <inertia ixx="0.00004" ixy="0" ixz="0" iyy="0.00004" iyz="0" izz="0.000003"/>
+    </inertial>
+  </link>
+  <joint name="finger_base_joint" type="fixed">
+    <parent link="wrist_link"/>
+    <child link="finger_base"/>
+    <origin xyz="0 0 -0.036" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ================================================================ -->
+  <!--  FINGER LEFT — PROXIMAL PHALANX                                  -->
+  <!--  Joint opens outward in +Y direction.                            -->
+  <!--  0 = closed (fingers together), +0.55 rad = fully open.         -->
+  <!-- ================================================================ -->
+  <joint name="finger_left_proximal_joint" type="revolute">
+    <parent link="finger_base"/>
+    <child link="finger_left_proximal"/>
+    <origin xyz="0.007 0.009 -0.028" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="0.0" upper="0.55" effort="6" velocity="1.2"/>
+    <dynamics damping="0.08" friction="0.02"/>
+  </joint>
+  <link name="finger_left_proximal">
+    <visual>
+      <!-- Tapered finger segment: 5 mm wide, 32 mm long -->
+      <origin xyz="0.005 0.004 -0.016" rpy="0 0.18 0"/>
+      <geometry><box size="0.007 0.008 0.032"/></geometry>
+      <material name="finger_color"/>
+    </visual>
+    <collision>
+      <origin xyz="0.005 0.004 -0.016" rpy="0 0.18 0"/>
+      <geometry><box size="0.007 0.008 0.032"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.012"/>
+      <inertia ixx="0.000008" ixy="0" ixz="0" iyy="0.000008" iyz="0" izz="0.000001"/>
+    </inertial>
+  </link>
+
+  <!-- ================================================================ -->
+  <!--  FINGER LEFT — DISTAL PHALANX (tip)                             -->
+  <!--  Curls in as the proximal opens — mimics a natural grasp.       -->
+  <!--  Axis Y, same direction.  Range 0..0.40 rad.                    -->
+  <!-- ================================================================ -->
+  <joint name="finger_left_distal_joint" type="revolute">
+    <parent link="finger_left_proximal"/>
+    <child link="finger_left_distal"/>
+    <origin xyz="0.009 0.005 -0.030" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="0.0" upper="0.40" effort="4" velocity="1.2"/>
+    <dynamics damping="0.05" friction="0.01"/>
+  </joint>
+  <link name="finger_left_distal">
+    <visual>
+      <!-- Shorter tip segment with yellow contact pad -->
+      <origin xyz="0.004 0.002 -0.010" rpy="0 0.12 0"/>
+      <geometry><box size="0.006 0.007 0.020"/></geometry>
+      <material name="finger_tip_col"/>
+    </visual>
+    <collision>
+      <origin xyz="0.004 0.002 -0.010" rpy="0 0.12 0"/>
+      <geometry><box size="0.006 0.007 0.020"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.006"/>
+      <inertia ixx="0.000003" ixy="0" ixz="0" iyy="0.000003" iyz="0" izz="0.0000005"/>
+    </inertial>
+  </link>
+
+  <!-- Left distal contact sensor -->
+  <link name="jaw_left_sensor">
+    <visual><origin xyz="0 0 0"/><geometry><box size="0.003 0.005 0.004"/></geometry>
+      <material name="sensor_yellow"/></visual>
+    <collision><origin xyz="0 0 0"/><geometry><box size="0.003 0.005 0.004"/></geometry></collision>
+    <inertial><mass value="0.001"/>
+      <inertia ixx="0.000001" ixy="0" ixz="0" iyy="0.000001" iyz="0" izz="0.000001"/></inertial>
+  </link>
+  <joint name="jaw_left_sensor_joint" type="fixed">
+    <parent link="finger_left_distal"/>
+    <child link="jaw_left_sensor"/>
+    <origin xyz="0.004 0.002 -0.018" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ================================================================ -->
+  <!--  FINGER RIGHT — PROXIMAL PHALANX (mirror of left)               -->
+  <!--  Opens in −Y direction. Limit lower=−0.55..0.                   -->
+  <!-- ================================================================ -->
+  <joint name="finger_right_proximal_joint" type="revolute">
+    <parent link="finger_base"/>
+    <child link="finger_right_proximal"/>
+    <origin xyz="0.007 -0.009 -0.028" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-0.55" upper="0.0" effort="6" velocity="1.2"/>
+    <dynamics damping="0.08" friction="0.02"/>
+  </joint>
+  <link name="finger_right_proximal">
+    <visual>
+      <origin xyz="0.005 -0.004 -0.016" rpy="0 -0.18 0"/>
+      <geometry><box size="0.007 0.008 0.032"/></geometry>
+      <material name="finger_color"/>
+    </visual>
+    <collision>
+      <origin xyz="0.005 -0.004 -0.016" rpy="0 -0.18 0"/>
+      <geometry><box size="0.007 0.008 0.032"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.012"/>
+      <inertia ixx="0.000008" ixy="0" ixz="0" iyy="0.000008" iyz="0" izz="0.000001"/>
+    </inertial>
+  </link>
+
+  <!-- ================================================================ -->
+  <!--  FINGER RIGHT — DISTAL PHALANX (tip)                            -->
+  <!-- ================================================================ -->
+  <joint name="finger_right_distal_joint" type="revolute">
+    <parent link="finger_right_proximal"/>
+    <child link="finger_right_distal"/>
+    <origin xyz="0.009 -0.005 -0.030" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-0.40" upper="0.0" effort="4" velocity="1.2"/>
+    <dynamics damping="0.05" friction="0.01"/>
+  </joint>
+  <link name="finger_right_distal">
+    <visual>
+      <origin xyz="0.004 -0.002 -0.010" rpy="0 -0.12 0"/>
+      <geometry><box size="0.006 0.007 0.020"/></geometry>
+      <material name="finger_tip_col"/>
+    </visual>
+    <collision>
+      <origin xyz="0.004 -0.002 -0.010" rpy="0 -0.12 0"/>
+      <geometry><box size="0.006 0.007 0.020"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.006"/>
+      <inertia ixx="0.000003" ixy="0" ixz="0" iyy="0.000003" iyz="0" izz="0.0000005"/>
+    </inertial>
+  </link>
+
+  <!-- Right distal contact sensor -->
+  <link name="jaw_right_sensor">
+    <visual><origin xyz="0 0 0"/><geometry><box size="0.003 0.005 0.004"/></geometry>
+      <material name="sensor_yellow"/></visual>
+    <collision><origin xyz="0 0 0"/><geometry><box size="0.003 0.005 0.004"/></geometry></collision>
+    <inertial><mass value="0.001"/>
+      <inertia ixx="0.000001" ixy="0" ixz="0" iyy="0.000001" iyz="0" izz="0.000001"/></inertial>
+  </link>
+  <joint name="jaw_right_sensor_joint" type="fixed">
+    <parent link="finger_right_distal"/>
+    <child link="jaw_right_sensor"/>
+    <origin xyz="0.004 -0.002 -0.018" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ================================================================ -->
+  <!--  GEAR MECHANISM — Rack-and-Pinion Grasper Drive                 -->
+  <!--  • drive_pinion : central gear disc at finger_base hub (8 teeth) -->
+  <!--  • worm_screw   : helical worm at wrist/shaft junction           -->
+  <!--  • rack_left / rack_right: tooth strips on finger proximal links -->
+  <!--  All are visual-only fixed joints; they animate with the fingers -->
+  <!-- ================================================================ -->
+
+  <!-- Central drive pinion gear disc -->
+  <link name="drive_pinion">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry><cylinder radius="0.013" length="0.007"/></geometry>
+      <material name="dark_metal"/>
+    </visual>
+    <!-- 8 gear teeth radially at R=0.013 -->
+    <visual><origin xyz=" 0.013 0 0.0035" rpy="0 0 0"/><geometry><box size="0.004 0.003 0.007"/></geometry><material name="sensor_yellow"/></visual>
+    <visual><origin xyz="-0.013 0 0.0035" rpy="0 0 0"/><geometry><box size="0.004 0.003 0.007"/></geometry><material name="sensor_yellow"/></visual>
+    <visual><origin xyz="0  0.013 0.0035" rpy="0 0 0"/><geometry><box size="0.003 0.004 0.007"/></geometry><material name="sensor_yellow"/></visual>
+    <visual><origin xyz="0 -0.013 0.0035" rpy="0 0 0"/><geometry><box size="0.003 0.004 0.007"/></geometry><material name="sensor_yellow"/></visual>
+    <visual><origin xyz=" 0.009  0.009 0.0035" rpy="0 0 0.785"/><geometry><box size="0.004 0.003 0.007"/></geometry><material name="sensor_yellow"/></visual>
+    <visual><origin xyz="-0.009  0.009 0.0035" rpy="0 0 0.785"/><geometry><box size="0.004 0.003 0.007"/></geometry><material name="sensor_yellow"/></visual>
+    <visual><origin xyz=" 0.009 -0.009 0.0035" rpy="0 0 0.785"/><geometry><box size="0.004 0.003 0.007"/></geometry><material name="sensor_yellow"/></visual>
+    <visual><origin xyz="-0.009 -0.009 0.0035" rpy="0 0 0.785"/><geometry><box size="0.004 0.003 0.007"/></geometry><material name="sensor_yellow"/></visual>
+    <inertial><mass value="0.005"/>
+      <inertia ixx="0.000001" ixy="0" ixz="0" iyy="0.000001" iyz="0" izz="0.000002"/></inertial>
+  </link>
+  <joint name="drive_pinion_joint" type="fixed">
+    <parent link="finger_base"/>
+    <child  link="drive_pinion"/>
+    <origin xyz="0.007 0 -0.005" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Worm screw input at wrist/shaft junction -->
+  <link name="worm_screw">
+    <visual>
+      <origin xyz="0 0 0.012" rpy="0 0 0"/>
+      <geometry><cylinder radius="0.005" length="0.024"/></geometry>
+      <material name="dark_metal"/>
+    </visual>
+    <!-- 3 helix flight visuals -->
+    <visual><origin xyz=" 0.005 0     0.006" rpy="0  0.5 0"/><geometry><box size="0.002 0.008 0.004"/></geometry><material name="sensor_yellow"/></visual>
+    <visual><origin xyz="0      0.005 0.012" rpy=" 0.5 0 0"/><geometry><box size="0.008 0.002 0.004"/></geometry><material name="sensor_yellow"/></visual>
+    <visual><origin xyz="-0.005 0     0.018" rpy="0 -0.5 0"/><geometry><box size="0.002 0.008 0.004"/></geometry><material name="sensor_yellow"/></visual>
+    <inertial><mass value="0.003"/>
+      <inertia ixx="0.0000005" ixy="0" ixz="0" iyy="0.0000005" iyz="0" izz="0.0000001"/></inertial>
+  </link>
+  <joint name="worm_screw_joint" type="fixed">
+    <parent link="wrist_link"/>
+    <child  link="worm_screw"/>
+    <origin xyz="0.010 0 -0.010" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Left finger rack strip (4 teeth on inner face of proximal link) -->
+  <link name="rack_left">
+    <visual><origin xyz="0 0  0.000" rpy="0 0 0"/><geometry><box size="0.003 0.002 0.005"/></geometry><material name="dark_metal"/></visual>
+    <visual><origin xyz="0 0 -0.006" rpy="0 0 0"/><geometry><box size="0.003 0.002 0.005"/></geometry><material name="dark_metal"/></visual>
+    <visual><origin xyz="0 0 -0.012" rpy="0 0 0"/><geometry><box size="0.003 0.002 0.005"/></geometry><material name="dark_metal"/></visual>
+    <visual><origin xyz="0 0 -0.018" rpy="0 0 0"/><geometry><box size="0.003 0.002 0.005"/></geometry><material name="dark_metal"/></visual>
+    <inertial><mass value="0.001"/>
+      <inertia ixx="0.0000001" ixy="0" ixz="0" iyy="0.0000001" iyz="0" izz="0.0000001"/></inertial>
+  </link>
+  <joint name="rack_left_joint" type="fixed">
+    <parent link="finger_left_proximal"/>
+    <child  link="rack_left"/>
+    <origin xyz="-0.001 -0.010 -0.008" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Right finger rack strip -->
+  <link name="rack_right">
+    <visual><origin xyz="0 0  0.000" rpy="0 0 0"/><geometry><box size="0.003 0.002 0.005"/></geometry><material name="dark_metal"/></visual>
+    <visual><origin xyz="0 0 -0.006" rpy="0 0 0"/><geometry><box size="0.003 0.002 0.005"/></geometry><material name="dark_metal"/></visual>
+    <visual><origin xyz="0 0 -0.012" rpy="0 0 0"/><geometry><box size="0.003 0.002 0.005"/></geometry><material name="dark_metal"/></visual>
+    <visual><origin xyz="0 0 -0.018" rpy="0 0 0"/><geometry><box size="0.003 0.002 0.005"/></geometry><material name="dark_metal"/></visual>
+    <inertial><mass value="0.001"/>
+      <inertia ixx="0.0000001" ixy="0" ixz="0" iyy="0.0000001" iyz="0" izz="0.0000001"/></inertial>
+  </link>
+  <joint name="rack_right_joint" type="fixed">
+    <parent link="finger_right_proximal"/>
+    <child  link="rack_right"/>
+    <origin xyz="-0.001  0.010 -0.008" rpy="0 0 0"/>
+  </joint>
+
+  <!-- ================================================================ -->
+  <!--  ROS2 CONTROL                                                    -->
+  <!--  6 arm joints + wrist_pitch + 4 finger joints = 11 controlled   -->
+  <!--  Grasper controller drives: wrist_pitch, left_proximal,          -->
+  <!--    right_proximal, left_distal, right_distal                     -->
+  <!-- ================================================================ -->
+  <xacro:arg name="config_path" default=""/>
+  <ros2_control name="laproscopic_grasper_system" type="system">
+    <hardware>
+      <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+    </hardware>
+
+    <!-- Arm joints -->
+    <joint name="joint1_yaw">
+      <command_interface name="position"/>
+      <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="joint2_shoulder">
+      <command_interface name="position"/>
+      <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="joint3_elbow">
+      <command_interface name="position"/>
+      <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="joint4_wrist">
+      <command_interface name="position"/>
+      <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+
+    <!-- NEW: Wrist pitch -->
+    <joint name="joint5_wrist_pitch">
+      <command_interface name="position"/>
+      <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+
+    <!-- NEW: Finger proximal joints -->
+    <joint name="finger_left_proximal_joint">
+      <command_interface name="position"/>
+      <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="finger_right_proximal_joint">
+      <command_interface name="position"/>
+      <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+
+    <!-- NEW: Finger distal joints -->
+    <joint name="finger_left_distal_joint">
+      <command_interface name="position"/>
+      <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="finger_right_distal_joint">
+      <command_interface name="position"/>
+      <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+  </ros2_control>
+
+  <!-- ==================== GAZEBO PLUGINS ==================== -->
+  <gazebo>
+    <plugin filename="gz_ros2_control-system"
+            name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+      <parameters>$(arg config_path)</parameters>
+    </plugin>
+  </gazebo>
+
+  <!-- Force/Torque sensor on shaft — must reference joint, not link -->
+  <gazebo reference="sensor_ring_joint">
+    <sensor name="shaft_force_torque" type="force_torque">
+      <always_on>true</always_on>
+      <update_rate>100</update_rate>
+      <topic>/surgical_robot/shaft_force_torque</topic>
+      <force_torque>
+        <frame>child</frame>
+        <measure_direction>child_to_parent</measure_direction>
+      </force_torque>
+    </sensor>
+  </gazebo>
+
+  <!-- Contact sensors on fingertips -->
+  <gazebo reference="jaw_left_sensor">
+    <sensor name="jaw_left_contact" type="contact">
+      <always_on>true</always_on>
+      <update_rate>100</update_rate>
+      <topic>/surgical_robot/jaw_left_contact</topic>
+      <contact>
+        <collision>jaw_left_sensor_collision</collision>
+      </contact>
+    </sensor>
+  </gazebo>
+  <gazebo reference="jaw_right_sensor">
+    <sensor name="jaw_right_contact" type="contact">
+      <always_on>true</always_on>
+      <update_rate>100</update_rate>
+      <topic>/surgical_robot/jaw_right_contact</topic>
+      <contact>
+        <collision>jaw_right_sensor_collision</collision>
+      </contact>
+    </sensor>
+  </gazebo>
+
+  <!-- ==================== GAZEBO MATERIALS ==================== -->
+  <gazebo reference="robot_base">
+    <material>Gazebo/DarkGrey</material>
+    <mu1>0.9</mu1><mu2>0.9</mu2>
+  </gazebo>
+  <gazebo reference="trocar_shaft">
+    <material>Gazebo/Blue</material>
+    <mu1>0.3</mu1><mu2>0.3</mu2>
+  </gazebo>
+  <gazebo reference="wrist_link">
+    <material>Gazebo/Grey</material>
+  </gazebo>
+  <gazebo reference="finger_base">
+    <material>Gazebo/Silver</material>
+  </gazebo>
+  <gazebo reference="finger_left_proximal">
+    <material>Gazebo/SkyBlue</material>
+    <mu1>0.8</mu1><mu2>0.8</mu2>
+    <kp>800000</kp><kd>80</kd>
+  </gazebo>
+  <gazebo reference="finger_left_distal">
+    <material>Gazebo/Yellow</material>
+    <mu1>0.9</mu1><mu2>0.9</mu2>
+    <kp>600000</kp><kd>60</kd>
+  </gazebo>
+  <gazebo reference="finger_right_proximal">
+    <material>Gazebo/SkyBlue</material>
+    <mu1>0.8</mu1><mu2>0.8</mu2>
+    <kp>800000</kp><kd>80</kd>
+  </gazebo>
+  <gazebo reference="finger_right_distal">
+    <material>Gazebo/Yellow</material>
+    <mu1>0.9</mu1><mu2>0.9</mu2>
+    <kp>600000</kp><kd>60</kd>
+  </gazebo>
+  <gazebo reference="jaw_left_sensor">
+    <material>Gazebo/Orange</material>
+    <mu1>0.95</mu1><mu2>0.95</mu2>
+    <kp>500000</kp><kd>50</kd>
+  </gazebo>
+  <gazebo reference="jaw_right_sensor">
+    <material>Gazebo/Orange</material>
+    <mu1>0.95</mu1><mu2>0.95</mu2>
+    <kp>500000</kp><kd>50</kd>
+  </gazebo>
+
+</robot>

@@ -1,0 +1,353 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <world name="surgical_or_world">
+
+    <physics name="default_physics" default="true" type="ode">
+      <real_time_update_rate>1000.0</real_time_update_rate>
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1</real_time_factor>
+    </physics>
+
+    <plugin filename="gz-sim-physics-system"           name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system"     name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-sensors-system"           name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin filename="gz-sim-contact-system"           name="gz::sim::systems::Contact"/>
+    <plugin filename="gz-sim-forcetorque-system"       name="gz::sim::systems::ForceTorque"/>
+
+    <!-- ========== LIGHTING ========== -->
+    <light type="spot" name="surgical_light_main">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 3.5 0 0 0</pose>
+      <diffuse>1.0 1.0 0.95 1</diffuse>
+      <specular>0.9 0.9 0.85 1</specular>
+      <attenuation>
+        <range>12</range><constant>0.08</constant>
+        <linear>0.01</linear><quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>0 0 -1</direction>
+      <spot><inner_angle>1.2</inner_angle><outer_angle>1.8</outer_angle><falloff>1.0</falloff></spot>
+    </light>
+
+    <light type="directional" name="ambient_or">
+      <cast_shadows>false</cast_shadows>
+      <pose>0 0 5 0 0 0</pose>
+      <diffuse>0.45 0.45 0.50 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <direction>0 0 -1</direction>
+    </light>
+
+    <!-- ========== OR FLOOR ========== -->
+    <model name="or_floor">
+      <static>true</static>
+      <link name="floor_link">
+        <collision name="floor_collision">
+          <geometry><plane><normal>0 0 1</normal><size>12 12</size></plane></geometry>
+          <surface><friction><ode><mu>0.9</mu><mu2>0.9</mu2></ode></friction></surface>
+        </collision>
+        <visual name="floor_visual">
+          <geometry><plane><normal>0 0 1</normal><size>12 12</size></plane></geometry>
+          <material>
+            <ambient>0.80 0.80 0.85 1</ambient>
+            <diffuse>0.75 0.75 0.80 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ========== OR WALLS ========== -->
+    <model name="or_wall_back">
+      <static>true</static><pose>5 0 2 0 0 0</pose>
+      <link name="wall_link">
+        <collision name="c"><geometry><box><size>0.1 12 4</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.1 12 4</size></box></geometry>
+          <material><ambient>0.85 0.87 0.85 1</ambient><diffuse>0.83 0.85 0.83 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="or_wall_front">
+      <static>true</static><pose>-5 0 2 0 0 0</pose>
+      <link name="wall_link">
+        <collision name="c"><geometry><box><size>0.1 12 4</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>0.1 12 4</size></box></geometry>
+          <material><ambient>0.85 0.87 0.85 1</ambient><diffuse>0.83 0.85 0.83 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="or_wall_left">
+      <static>true</static><pose>0 5 2 0 0 0</pose>
+      <link name="wall_link">
+        <collision name="c"><geometry><box><size>12 0.1 4</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>12 0.1 4</size></box></geometry>
+          <material><ambient>0.85 0.87 0.85 1</ambient><diffuse>0.83 0.85 0.83 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="or_wall_right">
+      <static>true</static><pose>0 -5 2 0 0 0</pose>
+      <link name="wall_link">
+        <collision name="c"><geometry><box><size>12 0.1 4</size></box></geometry></collision>
+        <visual name="v"><geometry><box><size>12 0.1 4</size></box></geometry>
+          <material><ambient>0.85 0.87 0.85 1</ambient><diffuse>0.83 0.85 0.83 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <!-- ============================================================ -->
+    <!--  BLUE ROBOT TABLE                                            -->
+    <!--  The surgical robot mounts on this blue table.              -->
+    <!--  Table surface top = z 0.90 m                               -->
+    <!--    Surface slab: size 0.80×0.65×0.05, pose z=0.875          -->
+    <!--    Legs: length 0.85, pose z=0.425                           -->
+    <!--  Positioned at x=-1.8, y=0 — robot spawns on top of this.  -->
+    <!-- ============================================================ -->
+
+    <!-- Blue table: leg 1 -->
+    <model name="robot_table_leg1">
+      <static>true</static><pose>-0.75 0.25 0.425 0 0 0</pose>
+      <link name="l">
+        <collision name="c"><geometry><cylinder><radius>0.035</radius><length>0.85</length></cylinder></geometry></collision>
+        <visual name="v"><geometry><cylinder><radius>0.035</radius><length>0.85</length></cylinder></geometry>
+          <material><ambient>0.05 0.15 0.55 1</ambient><diffuse>0.04 0.12 0.50 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="robot_table_leg2">
+      <static>true</static><pose>-0.75 -0.25 0.425 0 0 0</pose>
+      <link name="l">
+        <collision name="c"><geometry><cylinder><radius>0.035</radius><length>0.85</length></cylinder></geometry></collision>
+        <visual name="v"><geometry><cylinder><radius>0.035</radius><length>0.85</length></cylinder></geometry>
+          <material><ambient>0.05 0.15 0.55 1</ambient><diffuse>0.04 0.12 0.50 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="robot_table_leg3">
+      <static>true</static><pose>-1.25 0.25 0.425 0 0 0</pose>
+      <link name="l">
+        <collision name="c"><geometry><cylinder><radius>0.035</radius><length>0.85</length></cylinder></geometry></collision>
+        <visual name="v"><geometry><cylinder><radius>0.035</radius><length>0.85</length></cylinder></geometry>
+          <material><ambient>0.05 0.15 0.55 1</ambient><diffuse>0.04 0.12 0.50 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="robot_table_leg4">
+      <static>true</static><pose>-1.25 -0.25 0.425 0 0 0</pose>
+      <link name="l">
+        <collision name="c"><geometry><cylinder><radius>0.035</radius><length>0.85</length></cylinder></geometry></collision>
+        <visual name="v"><geometry><cylinder><radius>0.035</radius><length>0.85</length></cylinder></geometry>
+          <material><ambient>0.05 0.15 0.55 1</ambient><diffuse>0.04 0.12 0.50 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <!-- Blue table: surface slab (top face = z 0.90) -->
+    <model name="robot_table_surface">
+      <static>true</static><pose>-1.00 0 0.875 0 0 0</pose>
+      <link name="table_link">
+        <collision name="table_col">
+          <geometry><box><size>0.80 0.65 0.05</size></box></geometry>
+          <surface><friction><ode><mu>0.85</mu><mu2>0.85</mu2></ode></friction></surface>
+        </collision>
+        <visual name="table_vis">
+          <geometry><box><size>0.80 0.65 0.05</size></box></geometry>
+          <material>
+            <!-- Vivid blue — the "blue table" the user asked for -->
+            <ambient>0.05 0.20 0.75 1</ambient>
+            <diffuse>0.04 0.18 0.70 1</diffuse>
+            <specular>0.25 0.35 0.80 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Blue table: thin top trim stripe (visual accent) -->
+    <model name="robot_table_trim">
+      <static>true</static><pose>-1.00 0 0.903 0 0 0</pose>
+      <link name="trim_link">
+        <visual name="trim_vis">
+          <geometry><box><size>0.82 0.67 0.006</size></box></geometry>
+          <material>
+            <ambient>0.10 0.30 0.90 1</ambient>
+            <diffuse>0.08 0.28 0.88 1</diffuse>
+            <specular>0.5 0.6 1.0 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ============================================================ -->
+    <!--  PATIENT SURGICAL TABLE (unchanged from original)            -->
+    <!--  Grey stainless table with green mattress, patient on top.   -->
+    <!-- ============================================================ -->
+
+    <!-- Patient table legs -->
+    <model name="or_table_leg1">
+      <static>true</static><pose>1.5 0.4 0.45 0 0 0</pose>
+      <link name="l">
+        <collision name="c"><geometry><cylinder><radius>0.04</radius><length>0.9</length></cylinder></geometry></collision>
+        <visual name="v"><geometry><cylinder><radius>0.04</radius><length>0.9</length></cylinder></geometry>
+          <material><ambient>0.3 0.3 0.35 1</ambient><diffuse>0.25 0.25 0.3 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="or_table_leg2">
+      <static>true</static><pose>1.5 -0.4 0.45 0 0 0</pose>
+      <link name="l">
+        <collision name="c"><geometry><cylinder><radius>0.04</radius><length>0.9</length></cylinder></geometry></collision>
+        <visual name="v"><geometry><cylinder><radius>0.04</radius><length>0.9</length></cylinder></geometry>
+          <material><ambient>0.3 0.3 0.35 1</ambient><diffuse>0.25 0.25 0.3 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="or_table_leg3">
+      <static>true</static><pose>-0.3 0.4 0.45 0 0 0</pose>
+      <link name="l">
+        <collision name="c"><geometry><cylinder><radius>0.04</radius><length>0.9</length></cylinder></geometry></collision>
+        <visual name="v"><geometry><cylinder><radius>0.04</radius><length>0.9</length></cylinder></geometry>
+          <material><ambient>0.3 0.3 0.35 1</ambient><diffuse>0.25 0.25 0.3 1</diffuse></material></visual>
+      </link>
+    </model>
+    <model name="or_table_leg4">
+      <static>true</static><pose>-0.3 -0.4 0.45 0 0 0</pose>
+      <link name="l">
+        <collision name="c"><geometry><cylinder><radius>0.04</radius><length>0.9</length></cylinder></geometry></collision>
+        <visual name="v"><geometry><cylinder><radius>0.04</radius><length>0.9</length></cylinder></geometry>
+          <material><ambient>0.3 0.3 0.35 1</ambient><diffuse>0.25 0.25 0.3 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <!-- Patient table surface (grey steel) -->
+    <model name="or_table_surface">
+      <static>true</static><pose>0.6 0 0.93 0 0 0</pose>
+      <link name="table_link">
+        <collision name="table_col">
+          <geometry><box><size>1.9 0.9 0.05</size></box></geometry>
+          <surface><friction><ode><mu>0.7</mu><mu2>0.7</mu2></ode></friction></surface>
+        </collision>
+        <visual name="table_vis">
+          <geometry><box><size>1.9 0.9 0.05</size></box></geometry>
+          <material>
+            <ambient>0.60 0.65 0.70 1</ambient>
+            <diffuse>0.55 0.60 0.65 1</diffuse>
+            <specular>0.3 0.3 0.3 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Patient table mattress (green) -->
+    <model name="or_table_mattress">
+      <static>true</static><pose>0.6 0 0.97 0 0 0</pose>
+      <link name="mattress_link">
+        <collision name="mat_col">
+          <geometry><box><size>1.85 0.85 0.06</size></box></geometry>
+          <surface><friction><ode><mu>0.5</mu><mu2>0.5</mu2></ode></friction></surface>
+        </collision>
+        <visual name="mat_vis">
+          <geometry><box><size>1.85 0.85 0.06</size></box></geometry>
+          <material><ambient>0.1 0.45 0.3 1</ambient><diffuse>0.1 0.4 0.25 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ========== PATIENT ========== -->
+    <model name="patient_torso">
+      <static>true</static><pose>0.5 0 1.15 0 0 0</pose>
+      <link name="torso_link">
+        <collision name="torso_col">
+          <geometry><box><size>0.50 0.30 0.22</size></box></geometry>
+          <surface>
+            <friction><ode><mu>0.6</mu><mu2>0.6</mu2></ode></friction>
+            <contact><ode><kp>100000</kp><kd>100</kd><soft_cfm>0.0</soft_cfm></ode></contact>
+          </surface>
+        </collision>
+        <visual name="torso_vis">
+          <geometry><box><size>0.50 0.30 0.22</size></box></geometry>
+          <material><ambient>0.85 0.70 0.60 1</ambient><diffuse>0.82 0.68 0.58 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+    <model name="patient_head">
+      <static>true</static><pose>0.95 0 1.23 0 0 0</pose>
+      <link name="head_link">
+        <collision name="head_col"><geometry><sphere><radius>0.11</radius></sphere></geometry></collision>
+        <visual name="head_vis">
+          <geometry><sphere><radius>0.11</radius></sphere></geometry>
+          <material><ambient>0.85 0.70 0.60 1</ambient><diffuse>0.82 0.68 0.58 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+    <model name="patient_lower">
+      <static>true</static><pose>0.0 0 1.08 0 0 0</pose>
+      <link name="lower_link">
+        <collision name="lower_col"><geometry><box><size>0.55 0.32 0.16</size></box></geometry></collision>
+        <visual name="lower_vis">
+          <geometry><box><size>0.55 0.32 0.16</size></box></geometry>
+          <material><ambient>0.1 0.2 0.6 1</ambient><diffuse>0.1 0.18 0.55 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+    <model name="surgical_drape">
+      <static>true</static><pose>0.5 0 1.27 0 0 0</pose>
+      <link name="drape_link">
+        <collision name="drape_col"><geometry><box><size>0.50 0.35 0.01</size></box></geometry></collision>
+        <visual name="drape_vis">
+          <geometry><box><size>0.50 0.35 0.01</size></box></geometry>
+          <material><ambient>0.08 0.35 0.15 0.85</ambient><diffuse>0.07 0.32 0.13 0.85</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ========== TISSUE TARGET ========== -->
+    <model name="tissue_target">
+      <static>false</static><pose>0.5 0 1.45 0 0 0</pose>
+      <link name="tissue_link">
+        <inertial>
+          <mass>0.02</mass>
+          <inertia><ixx>0.0001</ixx><ixy>0</ixy><ixz>0</ixz>
+                   <iyy>0.0001</iyy><iyz>0</iyz><izz>0.0001</izz></inertia>
+        </inertial>
+        <collision name="tissue_col">
+          <geometry><sphere><radius>0.020</radius></sphere></geometry>
+          <surface>
+            <friction><ode><mu>0.9</mu><mu2>0.9</mu2></ode></friction>
+            <contact><ode><kp>50000</kp><kd>50</kd><soft_cfm>0.001</soft_cfm></ode></contact>
+          </surface>
+        </collision>
+        <visual name="tissue_vis">
+          <geometry><ellipsoid><radii>0.025 0.015 0.010</radii></ellipsoid></geometry>
+          <material>
+            <ambient>0.7 0.2 0.25 1</ambient>
+            <diffuse>0.65 0.15 0.2 1</diffuse>
+            <specular>0.1 0.05 0.05 1</specular>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- ========== OR EQUIPMENT ========== -->
+    <model name="iv_stand">
+      <static>true</static><pose>-0.8 0.8 0.9 0 0 0</pose>
+      <link name="iv_link">
+        <collision name="iv_col"><geometry><cylinder><radius>0.015</radius><length>1.8</length></cylinder></geometry></collision>
+        <visual name="iv_vis">
+          <geometry><cylinder><radius>0.015</radius><length>1.8</length></cylinder></geometry>
+          <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.65 0.65 0.65 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+    <model name="anesthesia_machine">
+      <static>true</static><pose>-1.5 1.5 0.6 0 0 0</pose>
+      <link name="anesthesia_link">
+        <collision name="a_col"><geometry><box><size>0.5 0.4 1.2</size></box></geometry></collision>
+        <visual name="a_vis">
+          <geometry><box><size>0.5 0.4 1.2</size></box></geometry>
+          <material><ambient>0.85 0.85 0.9 1</ambient><diffuse>0.8 0.8 0.88 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+    <model name="monitor_screen">
+      <static>true</static><pose>-1.2 0 1.8 0 -0.3 0</pose>
+      <link name="monitor_link">
+        <collision name="m_col"><geometry><box><size>0.05 0.5 0.35</size></box></geometry></collision>
+        <visual name="m_vis">
+          <geometry><box><size>0.05 0.5 0.35</size></box></geometry>
+          <material><ambient>0.05 0.05 0.1 1</ambient><diffuse>0.0 0.0 0.05 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>
