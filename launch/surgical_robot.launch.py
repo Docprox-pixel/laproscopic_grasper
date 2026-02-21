@@ -1,15 +1,3 @@
-"""
-Launch file for Laparoscopic Grasper Surgical Robot
-ROS2 Jazzy + Gazebo Harmonic
-
-CHANGES:
-  • Robot spawns ON TOP of the dark-blue patient_lower box:
-      x=0.0, y=0.0, z=0.26  →  robot_base bottom at world z=1.16 m
-      (world_to_base joint z=0.90 + spawn z=0.26 = 1.16 = patient_lower top)
-  • ParameterValue(value_type=str) wraps Command() to avoid YAML parse error.
-  • grasper_controller drives 5 joints (wrist_pitch + 4 finger joints)
-"""
-
 import os
 from launch import LaunchDescription
 from launch.actions import (
