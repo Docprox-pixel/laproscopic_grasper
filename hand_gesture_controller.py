@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
 Hand Gesture Controller — Laparoscopic Grasper Surgical Robot
-==============================================================
+
 Compatible with mediapipe >= 0.10  (Tasks API, no mp.solutions)
 
 On first run, downloads hand_landmarker.task (~9 MB) to ~/hand_landmarker.task
 Subsequent runs use the cached file.
 
 GESTURE MAP
-───────────────────────────────────────────────────────────────
+
   ✋ Open hand (5 fingers)        → Open grasper jaws
   ✊ Fist (0 fingers)             → Close / grasp
   ☝  Index only, pointing up     → Shoulder UP
@@ -21,7 +21,7 @@ GESTURE MAP
   🤙 Thumb + pinky               → HOME (safe reset)
 
 USAGE
-─────
+ 
   source ~/gesture_venv/bin/activate
   python3 hand_gesture_controller.py
 
@@ -39,7 +39,7 @@ from collections import deque
 import cv2
 import numpy as np
 
-# ── mediapipe Tasks API ───────────────────────────────────────────────────────
+#  mediapipe Tasks API 
 try:
     import mediapipe as mp
     from mediapipe.tasks.python import BaseOptions
@@ -54,16 +54,14 @@ except ImportError as e:
     print("  Run:  pip install mediapipe opencv-python")
     sys.exit(1)
 
-# ── ROS2 (optional) ───────────────────────────────────────────────────────────
+#  ROS2 (optional) 
 try:
     import rclpy  # noqa: F401
     ROS2_AVAILABLE = True
 except ImportError:
     ROS2_AVAILABLE = False
 
-# ═══════════════════════════════════════════════════════════════════════════════
 #  CONFIG
-# ═══════════════════════════════════════════════════════════════════════════════
 
 MODEL_PATH      = os.path.expanduser("~/hand_landmarker.task")
 MODEL_URL       = ("https://storage.googleapis.com/mediapipe-models/"
@@ -94,9 +92,7 @@ C_TEAL   = (200, 180,  30)
 C_GREY   = (120, 120, 120)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
 #  MODEL DOWNLOAD
-# ═══════════════════════════════════════════════════════════════════════════════
 
 def ensure_model() -> str:
     if os.path.exists(MODEL_PATH):
@@ -125,10 +121,7 @@ def ensure_model() -> str:
         sys.exit(1)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
 #  ROBOT COMMANDER
-# ═══════════════════════════════════════════════════════════════════════════════
-
 class RobotCommander:
     ARM_JOINTS = ["joint1_yaw", "joint2_shoulder", "joint3_elbow", "joint4_wrist"]
     GRASP_JOINTS = [
@@ -158,10 +151,7 @@ class RobotCommander:
     def send_grasper(self, positions, duration=MOVE_DURATION):
         self._fire("grasper_controller", self.GRASP_JOINTS, positions, duration)
 
-
-# ═══════════════════════════════════════════════════════════════════════════════
 #  ARM STATE
-# ═══════════════════════════════════════════════════════════════════════════════
 
 class ArmState:
     def __init__(self):
@@ -183,9 +173,7 @@ class ArmState:
         self.yaw = self.shoulder = self.elbow = self.wrist = 0.0
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
 #  GESTURE DETECTOR  (mediapipe Tasks API)
-# ═══════════════════════════════════════════════════════════════════════════════
 
 TIP = [4, 8, 12, 16, 20]
 PIP = [3, 6, 10, 14, 18]
@@ -299,9 +287,7 @@ class GestureDetector:
         return name, conf, annotated
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
 #  OVERLAY
-# ═══════════════════════════════════════════════════════════════════════════════
 
 GESTURE_INFO = {
     "OPEN_HAND":  ("Open Hand",    "Open grasper jaws",   C_GREEN),
@@ -390,9 +376,7 @@ def draw_overlay(frame, gesture, conf, arm, last_cmd, fps, cd_pct):
     return out
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
 #  MAIN
-# ═══════════════════════════════════════════════════════════════════════════════
 
 def main():
     print("\n" + "=" * 60)
@@ -441,7 +425,7 @@ def main():
         elapsed = now - last_cmd_time
         cd_pct  = min(elapsed / GESTURE_COOLDOWN, 1.0)
 
-        # ── Dispatch ─────────────────────────────────────────────────────
+        #  Dispatch 
         if (gesture not in ("NONE", "UNKNOWN") and
                 conf >= 0.80 and
                 elapsed >= GESTURE_COOLDOWN and
