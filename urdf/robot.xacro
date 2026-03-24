@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro"
+       name="rurgery_robot">
+
+<xacro:property name="mesh_scale" value="0.001 0.001 0.001"/>
+
+<!-- MACRO FOR LINKS -->
+<xacro:macro name="link_mesh" params="name mesh mass radius length">
+
+<link name="${name}">
+
+  <visual>
+    <geometry>
+      <mesh filename="package://robot_description/meshes/${mesh}"
+            scale="${mesh_scale}"/>
+    </geometry>
+  </visual>
+
+  <collision>
+    <geometry>
+      <cylinder radius="${radius}" length="${length}"/>
+    </geometry>
+  </collision>
+
+  <inertial>
+    <mass value="${mass}"/>
+    <inertia ixx="0.005" iyy="0.005" izz="0.005"
+             ixy="0" ixz="0" iyz="0"/>
+  </inertial>
+
+</link>
+
+</xacro:macro>
+
+<xacro:link_mesh name="base_link" mesh="base_link.STL" mass="6" radius="0.1" length="0.05"/>
+<xacro:link_mesh name="link1" mesh="link1.STL" mass="1.5" radius="0.04" length="0.25"/>
+<xacro:link_mesh name="link2" mesh="link2.STL" mass="1.2" radius="0.035" length="0.22"/>
+<xacro:link_mesh name="link3" mesh="link3.STL" mass="0.8" radius="0.03" length="0.18"/>
+
+<!-- JOINTS -->
+
+<joint name="joint1" type="revolute">
+  <parent link="base_link"/>
+  <child link="link1"/>
+  <origin xyz="0 0 0.1"/>
+  <axis xyz="0 0 1"/>
+  <limit lower="-3.14" upper="3.14"
+         effort="30" velocity="2"/>
+</joint>
+
+<joint name="joint2" type="revolute">
+  <parent link="link1"/>
+  <child link="link2"/>
+  <origin xyz="0 0 0.25"/>
+  <axis xyz="0 1 0"/>
+  <limit lower="-1.57" upper="1.57"
+         effort="30" velocity="2"/>
+</joint>
+
+<joint name="joint3" type="revolute">
+  <parent link="link2"/>
+  <child link="link3"/>
+  <origin xyz="0 0 0.22"/>
+  <axis xyz="0 1 0"/>
+  <limit lower="-1.57" upper="1.57"
+         effort="30" velocity="2"/>
+</joint>
+
+</robot>

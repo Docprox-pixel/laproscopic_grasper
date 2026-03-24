@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="kuka_med_with_grasper">
+  
+  <!-- KUKA LBR iiwa14 Arm -->
+  <xacro:include filename="$(find kuka_iiwa_description)/robots/iiwa14_limits.xacro"/>
+  <xacro:include filename="$(find kuka_iiwa_description)/robots/iiwa14.xacro"/>
+  <!-- dVRK Grasper -->
+  <xacro:include filename="dvrk_grasper.xacro"/>
+
+  <!-- World -->
+  <link name="world"/>
+
+  <!-- Instantiate KUKA LBR iiwa14 -->
+  <xacro:iiwa14 prefix="iiwa14_" connected_to="world" xyz="0 0 0" rpy="0 0 0"/>
+
+  <!-- Instantiate dVRK Grasper on link8 (pointing front, rotated 180 deg) -->
+  <xacro:dvrk_grasper parent="iiwa14_link8">
+    <origin xyz="0 0 0.05" rpy="0 0 3.14159"/>
+  </xacro:dvrk_grasper>
+
+</robot>
