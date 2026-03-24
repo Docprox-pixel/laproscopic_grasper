@@ -1,0 +1,75 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100  # Hz
+    use_sim_time: true
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    arm_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    # NEW: grasper controller now drives wrist_pitch + 4 finger joints
+    grasper_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+# Arm Controller — 7 arm joints
+arm_controller:
+  ros__parameters:
+    joints:
+      - iiwa14_joint1
+      - iiwa14_joint2
+      - iiwa14_joint3
+      - iiwa14_joint4
+      - iiwa14_joint5
+      - iiwa14_joint6
+      - iiwa14_joint7
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    state_publish_rate: 100.0
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: false
+    open_loop_control: false
+    allow_integration_in_goal_trajectories: true
+    constraints:
+      stopped_velocity_tolerance: 0.01
+      goal_time: 0.0
+      iiwa14_joint1: { trajectory: 0.05, goal: 0.03 }
+      iiwa14_joint2: { trajectory: 0.05, goal: 0.03 }
+      iiwa14_joint3: { trajectory: 0.05, goal: 0.03 }
+      iiwa14_joint4: { trajectory: 0.05, goal: 0.03 }
+      iiwa14_joint5: { trajectory: 0.05, goal: 0.03 }
+      iiwa14_joint6: { trajectory: 0.05, goal: 0.03 }
+      iiwa14_joint7: { trajectory: 0.05, goal: 0.03 }
+
+# Grasper Controller — wrist pitch, yaw and jaw
+grasper_controller:
+  ros__parameters:
+    joints:
+      - grasper_pitch_joint
+      - grasper_yaw_joint
+      - grasper_jaw_joint
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    state_publish_rate: 100.0
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: true
+    open_loop_control: false
+    constraints:
+      stopped_velocity_tolerance: 0.01
+      goal_time: 0.0
+      grasper_pitch_joint:
+        trajectory: 0.05
+        goal: 0.03
+      grasper_yaw_joint:
+        trajectory: 0.05
+        goal: 0.03
+      grasper_jaw_joint:
+        trajectory: 0.05
+        goal: 0.03
