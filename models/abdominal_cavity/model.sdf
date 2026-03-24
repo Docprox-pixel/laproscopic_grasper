@@ -1,0 +1,29 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <model name="abdominal_cavity">
+    <static>true</static>
+    <link name="cavity_link">
+      <collision name="cavity_collision">
+        <geometry>
+          <mesh>
+            <uri>file://../../meshes/abdominal_cavity.stl</uri>
+            <scale>1 1 1</scale>
+          </mesh>
+        </geometry>
+      </collision>
+      <visual name="cavity_visual">
+        <geometry>
+          <mesh>
+            <uri>file://../../meshes/abdominal_cavity.stl</uri>
+            <scale>1 1 1</scale>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.3 0.3 0.3 1</ambient>
+          <diffuse>0.4 0.4 0.4 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+        </material>
+      </visual>
+    </link>
+  </model>
+</sdf>
