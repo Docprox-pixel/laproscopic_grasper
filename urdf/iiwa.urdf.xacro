@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<robot name="iiwa14" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  
+  <xacro:include filename="$(find laproscopic_grasper)/urdf/materials.xacro" />
+  <xacro:include filename="$(find laproscopic_grasper)/urdf/iiwa14_limits.xacro"/>
+  <xacro:include filename="$(find laproscopic_grasper)/urdf/iiwa14.xacro"/>
+  
+  <link name="world"/>
+  
+  <xacro:iiwa14 prefix="iiwa14_" connected_to="world" xyz="0 0 0" rpy="0 0 0"/>
+  
+</robot>

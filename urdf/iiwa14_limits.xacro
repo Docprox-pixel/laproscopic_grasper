@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- KUKA LBR iiwa 14 R820 joint limits -->
+  <!-- Source: KUKA LBR iiwa 14 R820 datasheet -->
+  <!-- Position limits in radians -->
+  <xacro:property name="joint_limit_1" value="${170 * PI / 180}"/>
+  <xacro:property name="joint_limit_2" value="${120 * PI / 180}"/>
+  <xacro:property name="joint_limit_3" value="${170 * PI / 180}"/>
+  <xacro:property name="joint_limit_4" value="${120 * PI / 180}"/>
+  <xacro:property name="joint_limit_5" value="${170 * PI / 180}"/>
+  <xacro:property name="joint_limit_6" value="${120 * PI / 180}"/>
+  <xacro:property name="joint_limit_7" value="${175 * PI / 180}"/>
+
+  <!-- Maximum effort (Nm) -->
+  <xacro:property name="max_effort_1" value="320"/>
+  <xacro:property name="max_effort_2" value="320"/>
+  <xacro:property name="max_effort_3" value="176"/>
+  <xacro:property name="max_effort_4" value="176"/>
+  <xacro:property name="max_effort_5" value="110"/>
+  <xacro:property name="max_effort_6" value="40"/>
+  <xacro:property name="max_effort_7" value="40"/>
+
+  <!-- Maximum velocity (rad/s) -->
+  <xacro:property name="max_velocity_1" value="${85 * PI / 180}"/>
+  <xacro:property name="max_velocity_2" value="${85 * PI / 180}"/>
+  <xacro:property name="max_velocity_3" value="${100 * PI / 180}"/>
+  <xacro:property name="max_velocity_4" value="${75 * PI / 180}"/>
+  <xacro:property name="max_velocity_5" value="${130 * PI / 180}"/>
+  <xacro:property name="max_velocity_6" value="${135 * PI / 180}"/>
+  <xacro:property name="max_velocity_7" value="${135 * PI / 180}"/>
+
+</robot>

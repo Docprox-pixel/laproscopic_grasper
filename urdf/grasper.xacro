@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!--
+    FAKE SURGICAL GRASPER
+    =====================
+    A simplified high-dexterity surgical end-effector.
+    - grasper_roll_joint  (Roll)
+    - grasper_pitch_joint (Pitch)
+    - grasper_yaw_joint   (Yaw)
+    - grasper_jaw_joint   (Jaw open/close - Horizontal)
+  -->
+
+  <xacro:macro name="grasper" params="parent *origin">
+
+    <!-- 0. Grasper Base / Adapter -->
+    <joint name="grasper_base_joint" type="fixed">
+      <xacro:insert_block name="origin"/>
+      <parent link="${parent}"/>
+      <child  link="grasper_base_link"/>
+    </joint>
+
+    <link name="grasper_base_link">
+      <visual>
+        <origin xyz="0 0 0.02" rpy="0 0 0"/>
+        <geometry><cylinder radius="0.007" length="0.04"/></geometry>
+        <material name="grasper_gray"><color rgba="0.6 0.6 0.6 1"/></material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0.02" rpy="0 0 0"/>
+        <geometry><cylinder radius="0.007" length="0.04"/></geometry>
+      </collision>
+      <inertial>
+        <mass value="0.05"/><inertia ixx="1e-4" ixy="0" ixz="0" iyy="1e-4" iyz="0" izz="1e-5"/>
+      </inertial>
+    </link>
+
+    <!-- 1. ROLL JOINT (Rotation around longitudinal axis) -->
+    <joint name="grasper_roll_joint" type="revolute">
+      <parent link="grasper_base_link"/>
+      <child  link="grasper_roll_link"/>
+      <origin xyz="0 0 0.04" rpy="0 0 0"/>
+      <axis xyz="0 0 1"/>
+      <limit lower="-3.1415" upper="3.1415" effort="10.0" velocity="2.0"/>
+    </joint>
+
+    <link name="grasper_roll_link">
+      <visual>
+        <origin xyz="0 0 0.005" rpy="0 0 0"/>
+        <geometry><sphere radius="0.006"/></geometry>
+        <material name="grasper_black"><color rgba="0.1 0.1 0.1 1"/></material>
+      </visual>
+      <inertial>
+        <mass value="0.01"/><inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
+      </inertial>
+    </link>
+
+    <!-- 2. PITCH JOINT -->
+    <joint name="grasper_pitch_joint" type="revolute">
+      <parent link="grasper_roll_link"/>
+      <child  link="grasper_pitch_link"/>
+      <origin xyz="0 0 0.01" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit lower="-1.57" upper="1.57" effort="5.0" velocity="1.5"/>
+    </joint>
+
+    <link name="grasper_pitch_link">
+      <visual>
+        <origin xyz="0 0 0.005" rpy="0 0 0"/>
+        <geometry><box size="0.008 0.012 0.01"/></geometry>
+        <material name="grasper_steel"><color rgba="0.8 0.8 0.82 1"/></material>
+      </visual>
+      <inertial>
+        <mass value="0.01"/><inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
+      </inertial>
+    </link>
+
+    <!-- 3. YAW JOINT -->
+    <joint name="grasper_yaw_joint" type="revolute">
+      <parent link="grasper_pitch_link"/>
+      <child  link="grasper_yaw_link"/>
+      <origin xyz="0 0 0.01" rpy="0 0 0"/>
+      <axis xyz="1 0 0"/>
+      <limit lower="-1.57" upper="1.57" effort="5.0" velocity="1.5"/>
+    </joint>
+
+    <link name="grasper_yaw_link">
+      <visual>
+        <origin xyz="0 0 0.002" rpy="0 0 0"/>
+        <geometry><sphere radius="0.005"/></geometry>
+        <material name="grasper_black"/>
+      </visual>
+      <inertial>
+        <mass value="0.01"/><inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
+      </inertial>
+    </link>
+
+    <!-- 4. JAW JOINT (Symmetric Scissors Opening) -->
+    <!-- grasper_jaw_joint is the primary revolute joint for controllers -->
+    <joint name="grasper_jaw_joint" type="revolute">
+      <parent link="grasper_yaw_link"/>
+      <child  link="jaw_left_link"/>
+      <origin xyz="0 0 0.005" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit lower="0.0" upper="0.8" effort="1.0" velocity="2.0"/>
+    </joint>
+
+    <link name="jaw_left_link">
+      <visual>
+        <origin xyz="0 0 0.015" rpy="0 0 0"/>
+        <geometry><box size="0.004 0.002 0.03"/></geometry>
+        <material name="jaw_silver"><color rgba="0.9 0.9 0.95 1"/></material>
+      </visual>
+      <collision name="jaw_left_collision">
+        <origin xyz="0 0 0.015" rpy="0 0 0"/>
+        <geometry><box size="0.004 0.002 0.03"/></geometry>
+      </collision>
+      <inertial>
+        <mass value="0.5"/><inertia ixx="1e-3" ixy="0" ixz="0" iyy="1e-3" iyz="0" izz="1e-4"/>
+      </inertial>
+    </link>
+
+    <joint name="jaw_right_joint" type="revolute">
+      <parent link="grasper_yaw_link"/>
+      <child  link="jaw_right_link"/>
+      <origin xyz="0 0 0.005" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit lower="-0.8" upper="0.0" effort="1.0" velocity="2.0"/>
+      <mimic joint="grasper_jaw_joint" multiplier="-1.0" offset="0.0"/>
+    </joint>
+
+    <link name="jaw_right_link">
+      <visual>
+        <origin xyz="0 0 0.015" rpy="0 0 0"/>
+        <geometry><box size="0.004 0.002 0.03"/></geometry>
+        <material name="jaw_silver"/>
+      </visual>
+      <collision name="jaw_right_collision">
+        <origin xyz="0 0 0.015" rpy="0 0 0"/>
+        <geometry><box size="0.004 0.002 0.03"/></geometry>
+      </collision>
+      <inertial>
+        <mass value="0.5"/><inertia ixx="1e-3" ixy="0" ixz="0" iyy="1e-3" iyz="0" izz="1e-4"/>
+      </inertial>
+    </link>
+
+    <!-- 5. ENDOSCOPIC CAMERA (Visual only at tip) -->
+    <joint name="endoscope_joint" type="fixed">
+      <parent link="grasper_yaw_link"/>
+      <child  link="endoscope_link"/>
+      <origin xyz="0 0 0.01" rpy="0 0 0"/>
+    </joint>
+    <link name="endoscope_link">
+      <visual>
+        <geometry><cylinder radius="0.005" length="0.002"/></geometry>
+        <material name="lens"><color rgba="0.1 0.1 0.1 1"/></material>
+      </visual>
+    </link>
+
+    <!-- Gazebo Camera Sensor -->
+    <gazebo reference="endoscope_link">
+      <sensor name="grasper_camera" type="camera">
+        <pose>0 0 0 0 -1.5708 1.5708</pose> <!-- Point forward -->
+        <always_on>true</always_on>
+        <update_rate>15</update_rate>
+        <visualize>true</visualize>
+        <topic>grasper_camera/image_raw</topic>
+        <camera>
+          <horizontal_fov>1.2</horizontal_fov>
+          <image><width>640</width><height>480</height></image>
+          <clip><near>0.01</near><far>10</far></clip>
+        </camera>
+      </sensor>
+    </gazebo>
+
+    <!-- Gazebo Contact Sensors for Force Feedback -->
+    <gazebo reference="jaw_left_link">
+      <sensor name="jaw_left_contact" type="contact">
+        <always_on>true</always_on>
+        <update_rate>50</update_rate>
+        <contact>
+          <collision>jaw_left_collision</collision>
+        </contact>
+        <topic>contact</topic>
+      </sensor>
+    </gazebo>
+
+    <gazebo reference="jaw_right_link">
+      <sensor name="jaw_right_contact" type="contact">
+        <always_on>true</always_on>
+        <update_rate>50</update_rate>
+        <contact>
+          <collision>jaw_right_collision</collision>
+        </contact>
+        <topic>contact</topic>
+      </sensor>
+    </gazebo>
+
+
+  </xacro:macro>
+</robot>

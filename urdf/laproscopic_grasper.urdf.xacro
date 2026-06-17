@@ -1,0 +1,157 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="kuka_med_with_grasper">
+  
+  <xacro:arg name="config_path" default=""/>
+  <xacro:property name="PI" value="3.14159265358"/>
+
+
+  <!-- KUKA LBR iiwa14 Arm Limits -->
+  <xacro:include filename="$(find laproscopic_grasper)/urdf/iiwa14_limits.xacro"/>
+  <!-- KUKA LBR iiwa14 Arm Macro -->
+  <xacro:include filename="$(find laproscopic_grasper)/urdf/iiwa14.xacro"/>
+  <!-- Trocar (cylinder + prismatic rod) -->
+  <xacro:include filename="$(find laproscopic_grasper)/urdf/trocar_mechanism.xacro"/>
+  <!-- High-Fidelity Surgical Grasper (dVRK style) -->
+  <xacro:include filename="$(find laproscopic_grasper)/urdf/grasper.xacro"/>
+
+  <!-- World -->
+  <link name="world"/>
+
+  <!-- Instantiate KUKA LBR iiwa14 -->
+  <!-- Instantiate KUKA LBR iiwa14 - Elevated so it's on top of the base at Z=0.90m -->
+  <xacro:iiwa14 prefix="iiwa14_" connected_to="world" xyz="0 0 0.90" rpy="0 0 0"/>
+
+  <!-- Trocar cylinder + sliding rod (attaches to iiwa14_link7 per new req) -->
+  <xacro:trocar_mechanism parent="iiwa14_link7" xyz="0 0 0.05" rpy="0 0 0"/>
+
+  <!-- Grasper: attaches to rod_link -->
+  <xacro:grasper parent="rod_link">
+    <origin xyz="0 0 0.125" rpy="0 0 0"/>
+  </xacro:grasper>
+
+  <!-- ================================================================== -->
+  <!--  ROS2 CONTROL                                                      -->
+  <!-- ================================================================== -->
+  <!-- DIAGNOSTIC: Add a visual box directly to the iiwa14_link0 area to check if it's spawning -->
+  <!-- We'll attach it to the world link since it's the root -->
+  <joint name="diagnostic_joint" type="fixed">
+    <parent link="world"/>
+    <child link="diagnostic_link"/>
+    <origin xyz="0.5 0.6 1.2" rpy="0 0 0"/>
+  </joint>
+  <link name="diagnostic_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><box size="0.2 0.2 0.2"/></geometry>
+      <material name="Red"><color rgba="1 0 0 1"/></material>
+    </visual>
+  </link>
+
+  <ros2_control name="kuka_laproscopic_grasper_system" type="system">
+    <hardware>
+      <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+    </hardware>
+
+    <!-- ==== Shaft Translation (Trocar) ==== -->
+    <joint name="shaft_translation_joint">
+      <command_interface name="position"/>
+      <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+
+    <!-- ==== KUKA Arm joints ==== -->
+
+    <joint name="iiwa14_joint1">
+      <command_interface name="position"/>
+      <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="iiwa14_joint2">
+      <command_interface name="position"/>
+      <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="iiwa14_joint3">
+      <command_interface name="position"/>
+      <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="iiwa14_joint4">
+      <command_interface name="position"/>
+      <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="iiwa14_joint5">
+      <command_interface name="position"/>
+      <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="iiwa14_joint6">
+      <command_interface name="position"/>
+      <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+    <joint name="iiwa14_joint7">
+      <command_interface name="position"/>
+      <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+    </joint>
+
+    <!-- ==== Grasper joints (Merged) ==== -->
+    <joint name="grasper_roll_joint">
+      <command_interface name="position"/>
+      <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="grasper_pitch_joint">
+      <command_interface name="position"/>
+      <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="grasper_yaw_joint">
+      <command_interface name="position"/>
+      <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+
+    <!-- ==== Surgical Grasper Jaw ==== -->
+    <joint name="grasper_jaw_joint">
+      <command_interface name="position" />
+      <state_interface name="position">
+        <param name="initial_value">0.8</param>
+      </state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+
+  </ros2_control>
+
+  <!-- ================================================================== -->
+  <!--  GAZEBO PLUGINS                                                    -->
+  <!-- ================================================================== -->
+  <!-- The config_path shouldn't be overridden if the launch file passes it or launch injects plugin block -->
+  <!-- We'll keep the template simple, launch file will inject its own plugin parameters if needed. -->
+  <gazebo>
+    <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+      <parameters>$(arg config_path)</parameters>
+    </plugin>
+  </gazebo>
+
+  <!-- Force/Torque sensor on trocar shaft (mounted at shaft/wrist junction) -->
+  <gazebo reference="grasper_pitch_joint">
+    <sensor name="shaft_force_torque" type="force_torque">
+      <always_on>true</always_on>
+      <update_rate>100</update_rate>
+      <topic>shaft_force_torque</topic>
+    </sensor>
+  </gazebo>
+
+
+
+</robot>
