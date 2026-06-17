@@ -1,0 +1,9 @@
+/home/doc/surgical_robot_ws/src/laproscopic_grasper/build/laproscopic_grasper/CMakeFiles/uninstall.dir
+/home/doc/surgical_robot_ws/src/laproscopic_grasper/build/laproscopic_grasper/CMakeFiles/laproscopic_grasper_uninstall.dir
+/home/doc/surgical_robot_ws/src/laproscopic_grasper/build/laproscopic_grasper/CMakeFiles/test.dir
+/home/doc/surgical_robot_ws/src/laproscopic_grasper/build/laproscopic_grasper/CMakeFiles/edit_cache.dir
+/home/doc/surgical_robot_ws/src/laproscopic_grasper/build/laproscopic_grasper/CMakeFiles/rebuild_cache.dir
+/home/doc/surgical_robot_ws/src/laproscopic_grasper/build/laproscopic_grasper/CMakeFiles/list_install_components.dir
+/home/doc/surgical_robot_ws/src/laproscopic_grasper/build/laproscopic_grasper/CMakeFiles/install.dir
+/home/doc/surgical_robot_ws/src/laproscopic_grasper/build/laproscopic_grasper/CMakeFiles/install/local.dir
+/home/doc/surgical_robot_ws/src/laproscopic_grasper/build/laproscopic_grasper/CMakeFiles/install/strip.dir

@@ -1,0 +1,97 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100  # Hz
+    use_sim_time: true
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    shaft_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    arm_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    # grasper controller drives wrist_pitch + yaw + jaw
+    grasper_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+# Shaft (Trocar Translation) Controller — prismatic sliding rod
+shaft_controller:
+  ros__parameters:
+    joints:
+      - shaft_translation_joint
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    state_publish_rate: 100.0
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: false
+    # open_loop_control: immediately drives to commanded position without
+    # waiting for state convergence — prevents rod from falling under gravity
+    open_loop_control: true
+    constraints:
+      stopped_velocity_tolerance: 0.005
+      goal_time: 0.0
+      shaft_translation_joint: { trajectory: 0.10, goal: 0.05 }
+
+# Arm Controller — 7 arm joints
+arm_controller:
+  ros__parameters:
+    joints:
+      - iiwa14_joint1
+      - iiwa14_joint2
+      - iiwa14_joint3
+      - iiwa14_joint4
+      - iiwa14_joint5
+      - iiwa14_joint6
+      - iiwa14_joint7
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    state_publish_rate: 100.0
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: true
+    # open_loop_control: prevents 'aborted due to state tolerance violation'
+    # during rapid gesture changes
+    open_loop_control: true
+    allow_integration_in_goal_trajectories: true
+    constraints:
+      stopped_velocity_tolerance: 0.01
+      goal_time: 0.0
+      iiwa14_joint1: { trajectory: 0.50, goal: 0.30 }
+      iiwa14_joint2: { trajectory: 0.50, goal: 0.30 }
+      iiwa14_joint3: { trajectory: 0.50, goal: 0.30 }
+      iiwa14_joint4: { trajectory: 0.50, goal: 0.30 }
+      iiwa14_joint5: { trajectory: 1.50, goal: 1.00 }
+      iiwa14_joint6: { trajectory: 1.50, goal: 1.00 }
+      iiwa14_joint7: { trajectory: 1.50, goal: 1.00 }
+
+# Grasper Controller — wrist pitch, yaw and jaw
+grasper_controller:
+  ros__parameters:
+    joints:
+      - grasper_roll_joint
+      - grasper_pitch_joint
+      - grasper_yaw_joint
+      - grasper_jaw_joint
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    state_publish_rate: 100.0
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: true
+    open_loop_control: false
+    constraints:
+      stopped_velocity_tolerance: 0.05
+      goal_time: 0.0
+      grasper_roll_joint:  { trajectory: 0.20, goal: 0.10 }
+      grasper_pitch_joint: { trajectory: 0.20, goal: 0.10 }
+      grasper_yaw_joint:   { trajectory: 0.20, goal: 0.10 }
+      grasper_jaw_joint:   { trajectory: 0.50, goal: 0.10 }
